@@ -1,3 +1,9 @@
+#include "net.hpp"
 #include <gtest/gtest.h>
 
-TEST(IsEqual, OnevsOne) { ASSERT_EQ(1, 1); }
+TEST(saysHello, returnCorrectString)
+{
+
+	std::string s("Hello");
+	ASSERT_EQ(s, net::sayHello());
+}

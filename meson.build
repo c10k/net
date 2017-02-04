@@ -19,4 +19,5 @@ if not gtest.found()
 endif
 
 subdir('src')
+subdir('examples')
 subdir('test')

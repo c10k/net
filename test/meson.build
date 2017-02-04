@@ -1,4 +1,4 @@
-test_sources = ['test1.cpp', 'test2.cpp']
+test_sources = ['test.cpp']
 
 testexe = executable('testexe', test_sources,
         include_directories : inc, link_with : netlib,

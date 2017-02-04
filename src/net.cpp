@@ -1,3 +1,5 @@
+#include "net.hpp"
+
 namespace net {
-// TODO: do something..
+std::string sayHello() { return "Hello"; }
 }
