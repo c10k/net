@@ -111,7 +111,7 @@ void Socket::write(const std::string msg) const
 	do {
 		written = ::write(sockfd, msg.c_str() + count, msg.length() - count);
 		count += written;
-	} while (written > 0 || count < msg.length());
+	} while (written > 0);
 
 	if (written == -1) {
 		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
@@ -138,6 +138,8 @@ std::string Socket::read(const int bufSize) const
 			count = 0;
 		}
 	} while (bytes > 0);
+
+	str.append(buffer.get());
 
 	if (bytes == -1) {
 		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
