@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 
 namespace net {
+
 namespace SF {
 
 	enum class domain {
@@ -22,6 +23,7 @@ namespace SF {
 		ALG       = AF_ALG
 	};
 
+
 	enum class type {
 		TCP      = SOCK_STREAM,
 		UDP      = SOCK_DGRAM,
@@ -35,6 +37,7 @@ namespace SF {
 	enum class shut { READ = SHUT_RD, WRITE = SHUT_WR, READWRITE = SHUT_RDWR };
 }
 
+
 namespace method {
 
 	inline int construct(sockaddr_in &addrStruct, SF::domain _d,
@@ -46,6 +49,7 @@ namespace method {
 
 		return inet_pton(static_cast<int>(_d), _addr, &addrStruct.sin_addr);
 	}
+
 
 	inline int construct(sockaddr_in6 &addrStruct, SF::domain _d,
 	  const char _addr[], const int _port)

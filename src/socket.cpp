@@ -5,7 +5,6 @@ namespace net {
 void Socket::bind(const char _addr[], const int _port) const
 {
 	auto res = -1;
-
 	switch (domain) {
 
 		case SF::domain::IPv4: {
@@ -52,6 +51,7 @@ void Socket::start(const char _addr[], const int _port, const int _q) const
 	}
 }
 
+
 void Socket::connect(const char _addr[], const int _port) const
 {
 	auto res = -1;
@@ -87,6 +87,7 @@ void Socket::connect(const char _addr[], const int _port) const
 	}
 }
 
+
 Socket Socket::accept() const
 {
 	sockaddr_storage peerAddr;
@@ -120,9 +121,10 @@ void Socket::write(const std::string msg) const
 	}
 }
 
+
 std::string Socket::read(const int bufSize) const
 {
-	auto buffer = std::make_unique<char[]>(bufSize);
+	auto buffer = std::make_unique<char[]>(bufSize + 1);
 	auto bytes = 0, count = 0;
 
 	std::string str;
@@ -139,7 +141,7 @@ std::string Socket::read(const int bufSize) const
 		}
 	} while (bytes > 0);
 
-	str.append(buffer.get());
+	str.append(buffer.get(), count);
 
 	if (bytes == -1) {
 		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
