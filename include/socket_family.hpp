@@ -37,22 +37,24 @@ namespace SF {
 
 namespace method {
 
-	auto construct(sockaddr_in &s, SF::domain _d, const char _addr[], int _p)
+	inline int construct(sockaddr_in &addrStruct, SF::domain _d,
+	  const char _addr[], const int _port)
 	{
-		std::memset(&s, 0, sizeof(s));
-		s.sin_family = static_cast<int>(_d);
-		s.sin_port   = htons(_p);
+		std::memset(&addrStruct, 0, sizeof(addrStruct));
+		addrStruct.sin_family = static_cast<int>(_d);
+		addrStruct.sin_port   = htons(_port);
 
-		return inet_pton(static_cast<int>(_d), _addr, &s.sin_addr);
+		return inet_pton(static_cast<int>(_d), _addr, &addrStruct.sin_addr);
 	}
 
-	auto construct(sockaddr_in6 &s, SF::domain _d, const char _addr[], int _p)
+	inline int construct(sockaddr_in6 &addrStruct, SF::domain _d,
+	  const char _addr[], const int _port)
 	{
-		std::memset(&s, 0, sizeof(s));
-		s.sin6_family = static_cast<int>(_d);
-		s.sin6_port   = htons(_p);
+		std::memset(&addrStruct, 0, sizeof(addrStruct));
+		addrStruct.sin6_family = static_cast<int>(_d);
+		addrStruct.sin6_port   = htons(_port);
 
-		return inet_pton(static_cast<int>(_d), _addr, &s.sin6_addr);
+		return inet_pton(static_cast<int>(_d), _addr, &addrStruct.sin6_addr);
 	}
 }
 }
