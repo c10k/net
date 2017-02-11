@@ -9,7 +9,7 @@ void Socket::bind(const char _addr[], const int _port) const
 
 		case SF::domain::IPv4: {
 			sockaddr_in servaddr;
-			res = net::method::construct(servaddr, domain, _addr, _port);
+			res = net::method::construct(servaddr, _addr, _port);
 			if (res == 1) {
 				res = ::bind(sockfd, (sockaddr *) &servaddr, sizeof(servaddr));
 				res = (res == 0) ? 1 : res;
@@ -18,7 +18,7 @@ void Socket::bind(const char _addr[], const int _port) const
 
 		case SF::domain::IPv6: {
 			sockaddr_in6 servaddr;
-			res = net::method::construct(servaddr, domain, _addr, _port);
+			res = net::method::construct(servaddr, _addr, _port);
 			if (res == 1) {
 				res = ::bind(sockfd, (sockaddr *) &servaddr, sizeof(servaddr));
 				res = (res == 0) ? 1 : res;
@@ -58,7 +58,7 @@ void Socket::connect(const char _addr[], const int _port) const
 	switch (domain) {
 		case SF::domain::IPv4: {
 			sockaddr_in addr;
-			res = net::method::construct(addr, domain, _addr, _port);
+			res = net::method::construct(addr, _addr, _port);
 			if (res == 1) {
 				res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
 				res = (res == 0) ? 1 : res;
@@ -67,7 +67,7 @@ void Socket::connect(const char _addr[], const int _port) const
 
 		case SF::domain::IPv6: {
 			sockaddr_in6 addr;
-			res = net::method::construct(addr, domain, _addr, _port);
+			res = net::method::construct(addr, _addr, _port);
 			if (res == 1) {
 				res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
 				res = (res == 0) ? 1 : res;
@@ -131,6 +131,21 @@ void Socket::send(const std::string _msg, SF::send _flags) const
 }
 
 
+void Socket::send(
+  const std::string _msg, sockaddr_storage &_addr, SF::send _flags) const
+{
+	const auto flags = static_cast<int>(_flags);
+	const auto sent  = low_write(
+	  ::sendto, sockfd, _msg, flags, (sockaddr *) &_addr, sizeof(_addr));
+
+	if (sent == -1) {
+		// TODO: Check for sent == EAGAIN or EWOULDBLOCK and
+		// don't throw exception in that case.
+		throw std::runtime_error("Error occurred while sending message");
+	}
+}
+
+
 std::string Socket::read(const int _bufSize) const
 {
 	std::string str;
@@ -154,6 +169,27 @@ std::string Socket::recv(const int _bufSize, SF::recv _flags) const
 
 	const auto flags = static_cast<int>(_flags);
 	const auto recvd = low_read(::recv, sockfd, str, flags);
+
+	if (recvd == -1) {
+		// TODO: Check for recvd == EAGAIN or EWOULDBLOCK and
+		// don't throw exception in that case.
+		throw std::runtime_error("Error occurred while writing message");
+	}
+
+	return str;
+}
+
+
+std::string Socket::recv(
+  sockaddr_storage &_addr, const int _bufSize, SF::recv _flags) const
+{
+	std::string str;
+	str.reserve(_bufSize);
+
+	const auto flags = static_cast<int>(_flags);
+	socklen_t length = sizeof(_addr);
+	const auto recvd
+	  = low_read(::recvfrom, sockfd, str, flags, (sockaddr *) &_addr, &length);
 
 	if (recvd == -1) {
 		// TODO: Check for recvd == EAGAIN or EWOULDBLOCK and

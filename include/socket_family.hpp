@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 namespace net {
 
@@ -63,25 +64,50 @@ namespace SF {
 
 namespace method {
 
-	inline int construct(sockaddr_in &addrStruct, SF::domain _d,
-	  const char _addr[], const int _port)
+	inline int construct(
+	  sockaddr_in &addrStruct, const char _addr[], const int _port)
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
-		addrStruct.sin_family = static_cast<int>(_d);
+		addrStruct.sin_family = AF_INET;
 		addrStruct.sin_port   = htons(_port);
 
-		return inet_pton(static_cast<int>(_d), _addr, &addrStruct.sin_addr);
+		return inet_pton(AF_INET, _addr, &addrStruct.sin_addr);
 	}
 
 
-	inline int construct(sockaddr_in6 &addrStruct, SF::domain _d,
+	inline int construct(
+	  sockaddr_in6 &addrStruct, const char _addr[], const int _port)
+	{
+		std::memset(&addrStruct, 0, sizeof(addrStruct));
+		addrStruct.sin6_family = AF_INET6;
+		addrStruct.sin6_port   = htons(_port);
+
+		return inet_pton(AF_INET6, _addr, &addrStruct.sin6_addr);
+	}
+
+
+	inline int construct(sockaddr_storage &addrStruct, SF::domain _d,
 	  const char _addr[], const int _port)
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
-		addrStruct.sin6_family = static_cast<int>(_d);
-		addrStruct.sin6_port   = htons(_port);
 
-		return inet_pton(static_cast<int>(_d), _addr, &addrStruct.sin6_addr);
+		switch (_d) {
+			case SF::domain::IPv4: {
+				sockaddr_in *p = reinterpret_cast<sockaddr_in *>(&addrStruct);
+				p->sin_family  = AF_INET;
+				p->sin_port    = htons(_port);
+				return inet_pton(AF_INET, _addr, &p->sin_addr);
+			}
+
+			case SF::domain::IPv6: {
+				sockaddr_in6 *p = reinterpret_cast<sockaddr_in6 *>(&addrStruct);
+				p->sin6_family  = AF_INET6;
+				p->sin6_port    = htons(_port);
+				return inet_pton(AF_INET6, _addr, &p->sin6_addr);
+			}
+
+			default: return -1;
+		}
 	}
 }
 }

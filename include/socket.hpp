@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <unistd.h>
+
 
 namespace net {
 
@@ -38,23 +38,29 @@ public:
 		}
 	}
 
-	Socket(const int _sockfd, const sockaddr_storage &_addr)
+	Socket(const int _sockfd, sockaddr_storage &_addr)
 	{
 		sockfd  = _sockfd;
-		address = _addr;
-
-		// TODO: fill domain and type information
+		address = std::move(_addr);
+		domain  = static_cast<SF::domain>(_addr.ss_family);
 	}
+
 
 	void bind(const char[], const int = 0) const;
 	void start(const char[], const int = 0, const int = SOMAXCONN) const;
 	void connect(const char[], const int = 0) const;
 	Socket accept() const;
 
+
 	void write(std::string) const;
 	std::string read(const int = 1024) const;
+
 	void send(std::string, SF::send = SF::send::NONE) const;
 	std::string recv(const int = 1024, SF::recv = SF::recv::NONE) const;
+	void send(std::string, sockaddr_storage &, SF::send = SF::send::NONE) const;
+	std::string recv(
+	  sockaddr_storage &, const int = 1024, SF::recv = SF::recv::NONE) const;
+
 
 	void set(/* options */) const {}
 	void get(/* options */) const {}
