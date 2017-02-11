@@ -35,6 +35,29 @@ namespace SF {
 	};
 
 	enum class shut { READ = SHUT_RD, WRITE = SHUT_WR, READWRITE = SHUT_RDWR };
+
+
+	enum class recv {
+		NONE    = 0,
+		PEEK    = MSG_PEEK,
+		OOB     = MSG_OOB,
+		WAITALL = MSG_WAITALL
+	};
+	inline recv operator|(recv a, recv b)
+	{
+		return static_cast<recv>(static_cast<int>(a) | static_cast<int>(b));
+	}
+
+	enum class send {
+		NONE     = 0,
+		EOR      = MSG_EOR,
+		OOB      = MSG_OOB,
+		NOSIGNAL = MSG_NOSIGNAL
+	};
+	inline send operator|(send a, send b)
+	{
+		return static_cast<send>(static_cast<int>(a) | static_cast<int>(b));
+	}
 }
 
 

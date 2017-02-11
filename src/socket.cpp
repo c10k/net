@@ -106,13 +106,9 @@ Socket Socket::accept() const
 }
 
 
-void Socket::write(const std::string msg) const
+void Socket::write(const std::string _msg) const
 {
-	auto written = 0, count = 0;
-	do {
-		written = ::write(sockfd, msg.c_str() + count, msg.length() - count);
-		count += written;
-	} while (written > 0);
+	const auto written = low_write(::write, sockfd, _msg);
 
 	if (written == -1) {
 		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
@@ -122,29 +118,45 @@ void Socket::write(const std::string msg) const
 }
 
 
-std::string Socket::read(const int bufSize) const
+void Socket::send(const std::string _msg, SF::send _flags) const
 {
-	auto buffer = std::make_unique<char[]>(bufSize + 1);
-	auto bytes = 0, count = 0;
+	const auto flags = static_cast<int>(_flags);
+	const auto sent  = low_write(::send, sockfd, _msg, flags);
 
+	if (sent == -1) {
+		// TODO: Check for sent == EAGAIN or EWOULDBLOCK and
+		// don't throw exception in that case.
+		throw std::runtime_error("Error occurred while sending message");
+	}
+}
+
+
+std::string Socket::read(const int _bufSize) const
+{
 	std::string str;
-	str.reserve(bufSize);
+	str.reserve(_bufSize);
 
-	do {
-		bytes = ::read(sockfd, buffer.get() + count, bufSize - count);
-		count += bytes;
-		if (count == bufSize) {
-			str.append(buffer.get());
-			str.reserve(str.length() + bufSize);
-			std::memset(buffer.get(), 0, bufSize);
-			count = 0;
-		}
-	} while (bytes > 0);
+	const auto recvd = low_read(::read, sockfd, str);
 
-	str.append(buffer.get(), count);
+	if (recvd == -1) {
+		// TODO: Check for bytes == EAGAIN or EWOULDBLOCK and
+		// don't throw exception in that case.
+		throw std::runtime_error("Error occurred while writing message");
+	}
+	return str;
+}
 
-	if (bytes == -1) {
-		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
+
+std::string Socket::recv(const int _bufSize, SF::recv _flags) const
+{
+	std::string str;
+	str.reserve(_bufSize);
+
+	const auto flags = static_cast<int>(_flags);
+	const auto recvd = low_read(::recv, sockfd, str, flags);
+
+	if (recvd == -1) {
+		// TODO: Check for recvd == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
 		throw std::runtime_error("Error occurred while writing message");
 	}
