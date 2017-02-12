@@ -9,7 +9,7 @@ namespace net {
 
 class Socket {
 private:
-	sockaddr_storage address;
+	std::unique_ptr<sockaddr_storage> address;
 	int sockfd;
 	SF::domain domain;
 	SF::type type;
@@ -20,13 +20,13 @@ private:
 	template <typename Fn, typename... Args>
 	auto low_read(Fn &&, const int, std::string &, Args &&...) const;
 
+	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
 
 public:
 	Socket(SF::domain _domain, SF::type _type, int _proto = 0)
 	    : domain(_domain), type(_type)
 	{
-		std::memset(&address, 0, sizeof(address));
 		const auto d = static_cast<int>(domain);
 		const auto t = static_cast<int>(type);
 
@@ -36,11 +36,19 @@ public:
 		}
 	}
 
-	Socket(const int _sockfd, sockaddr_storage &_addr)
+	Socket(const int _sockfd, std::unique_ptr<sockaddr_storage> &_addr)
 	{
-		sockfd  = _sockfd;
-		address = std::move(_addr);
-		domain  = static_cast<SF::domain>(_addr.ss_family);
+		sockfd = _sockfd;
+		domain = static_cast<SF::domain>(_addr.get()->ss_family);
+		address.reset(_addr.release());
+	}
+
+	Socket(Socket &&s)
+	{
+		sockfd = s.sockfd;
+		domain = s.domain;
+		type   = s.type;
+		address.reset(s.address.release());
 	}
 
 
@@ -95,9 +103,11 @@ template <typename Fn, typename... Args>
 inline auto Socket::low_read(
   Fn &&fn, const int _sockfd, std::string &_str, Args &&... args) const
 {
+	ssize_t recvd = 0;
+	size_t count  = 0;
+
 	const auto bufSize = _str.capacity();
 	const auto buffer  = std::make_unique<char[]>(bufSize + 1);
-	auto recvd = 0, count = 0;
 
 	do {
 		recvd = std::forward<Fn>(fn)(_sockfd, buffer.get() + count,

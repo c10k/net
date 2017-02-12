@@ -90,11 +90,12 @@ void Socket::connect(const char _addr[], const int _port) const
 
 Socket Socket::accept() const
 {
-	sockaddr_storage peerAddr;
-	socklen_t peerAddrSize = sizeof(peerAddr);
-	std::memset(&peerAddr, 0, sizeof(peerAddr));
+	auto peerAddr = std::make_unique<sockaddr_storage>();
 
-	auto client = ::accept(sockfd, (sockaddr *) &peerAddr, &peerAddrSize);
+	socklen_t peerAddrSize = sizeof(*peerAddr.get());
+	std::memset(peerAddr.get(), 0, peerAddrSize);
+
+	auto client = ::accept(sockfd, (sockaddr *) peerAddr.get(), &peerAddrSize);
 
 	if (client == -1) {
 		// TODO: Check for client == EAGAIN or EWOULDBLOCK and
