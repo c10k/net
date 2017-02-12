@@ -4,6 +4,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <mutex>
+#include <cstring>
+#include <errno.h>
 
 namespace net {
 
@@ -63,6 +66,16 @@ namespace SF {
 
 
 namespace method {
+
+	std::string getErrorMsg()
+	{
+		std::mutex lockToErrorString;
+		lockToErrorString.lock();
+		char *errMsg = strerror(errno);
+		std::string returnString(errMsg);
+		lockToErrorString.unlock();
+		return returnString;
+	}
 
 	inline int construct(
 	  sockaddr_in &addrStruct, const char _addr[], const int _port) noexcept
