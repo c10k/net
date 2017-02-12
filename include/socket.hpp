@@ -30,8 +30,6 @@ public:
 		const auto d = static_cast<int>(domain);
 		const auto t = static_cast<int>(type);
 
-		// TODO: fill sockaddr_storage address
-
 		sockfd = socket(d, t, _proto);
 		if (sockfd < 0) {
 			throw std::runtime_error("Something went wrong with socket call");
@@ -52,12 +50,14 @@ public:
 	Socket accept() const;
 
 
-	void write(std::string) const;
+	void write(const std::string &) const;
 	std::string read(const int = 1024) const;
 
-	void send(std::string, SF::send = SF::send::NONE) const;
+	void send(const std::string &, SF::send = SF::send::NONE) const;
 	std::string recv(const int = 1024, SF::recv = SF::recv::NONE) const;
-	void send(std::string, sockaddr_storage &, SF::send = SF::send::NONE) const;
+
+	void send(
+	  const std::string &, sockaddr_storage &, SF::send = SF::send::NONE) const;
 	std::string recv(
 	  sockaddr_storage &, const int = 1024, SF::recv = SF::recv::NONE) const;
 

@@ -44,7 +44,7 @@ namespace SF {
 		OOB     = MSG_OOB,
 		WAITALL = MSG_WAITALL
 	};
-	inline recv operator|(recv a, recv b)
+	inline constexpr recv operator|(recv a, recv b) noexcept
 	{
 		return static_cast<recv>(static_cast<int>(a) | static_cast<int>(b));
 	}
@@ -55,7 +55,7 @@ namespace SF {
 		OOB      = MSG_OOB,
 		NOSIGNAL = MSG_NOSIGNAL
 	};
-	inline send operator|(send a, send b)
+	inline constexpr send operator|(send a, send b) noexcept
 	{
 		return static_cast<send>(static_cast<int>(a) | static_cast<int>(b));
 	}
@@ -65,7 +65,7 @@ namespace SF {
 namespace method {
 
 	inline int construct(
-	  sockaddr_in &addrStruct, const char _addr[], const int _port)
+	  sockaddr_in &addrStruct, const char _addr[], const int _port) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sin_family = AF_INET;
@@ -76,7 +76,7 @@ namespace method {
 
 
 	inline int construct(
-	  sockaddr_in6 &addrStruct, const char _addr[], const int _port)
+	  sockaddr_in6 &addrStruct, const char _addr[], const int _port) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sin6_family = AF_INET6;

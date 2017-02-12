@@ -106,7 +106,7 @@ Socket Socket::accept() const
 }
 
 
-void Socket::write(const std::string _msg) const
+void Socket::write(const std::string &_msg) const
 {
 	const auto written = low_write(::write, sockfd, _msg);
 
@@ -118,7 +118,7 @@ void Socket::write(const std::string _msg) const
 }
 
 
-void Socket::send(const std::string _msg, SF::send _flags) const
+void Socket::send(const std::string &_msg, SF::send _flags) const
 {
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(::send, sockfd, _msg, flags);
@@ -132,7 +132,7 @@ void Socket::send(const std::string _msg, SF::send _flags) const
 
 
 void Socket::send(
-  const std::string _msg, sockaddr_storage &_addr, SF::send _flags) const
+  const std::string &_msg, sockaddr_storage &_addr, SF::send _flags) const
 {
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(
