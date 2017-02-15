@@ -1,6 +1,8 @@
 project('net', 'cpp', version : '0.1.0',
 		default_options : ['cpp_std=c++14'])
 
+add_global_arguments('-Wstrict-aliasing=2', language : 'cpp')
+
 inc = include_directories('include')
 
 thread_dep = dependency('threads')
