@@ -69,11 +69,10 @@ namespace method {
 
 	std::string getErrorMsg()
 	{
-		std::mutex lockToErrorString;
-		lockToErrorString.lock();
+		static std::mutex lockToErrorString;
+		std::lock_guard<std::mutex> lockGuard(lockToErrorString);
 		char *errMsg = strerror(errno);
 		std::string returnString(errMsg);
-		lockToErrorString.unlock();
 		return returnString;
 	}
 
