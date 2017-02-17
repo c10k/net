@@ -29,7 +29,7 @@ void Socket::bind(const char _addr[], const int _port) const
 	}
 
 	if (res == -1) {
-		throw std::runtime_error(net::method::getErrorMsg());
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	} else if (res == 0) {
 		throw std::invalid_argument("Address argument invalid");
 	}
@@ -43,7 +43,7 @@ void Socket::start(const char _addr[], const int _port, const int _q) const
 
 		if (type == SF::type::TCP || type == SF::type::SCTP) {
 			if (listen(sockfd, _q) < 0) {
-				throw std::runtime_error(net::method::getErrorMsg());
+				throw std::runtime_error(net::method::getErrorMsg(errno));
 			}
 		}
 	} catch (...) {
@@ -79,9 +79,10 @@ void Socket::connect(const char _addr[], const int _port) const
 
 	// TODO: Check for error == EINPROGRESS and don't throw exception in that
 	// case.
+	// CHECK if this is the right way to complete this TODO
 
-	if (res == -1) {
-		throw std::runtime_error(net::method::getErrorMsg());
+	if (res == -1 && errno != static_cast<int>(EINPROGRESS) ) {
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	} else if (res == 0) {
 		throw std::invalid_argument("Address argument invalid");
 	}
@@ -97,10 +98,11 @@ Socket Socket::accept() const
 
 	auto client = ::accept(sockfd, (sockaddr *) peerAddr.get(), &peerAddrSize);
 
-	if (client == -1) {
+	if (client == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for client == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 
 	return Socket(client, peerAddr);
@@ -111,10 +113,11 @@ void Socket::write(const std::string &_msg) const
 {
 	const auto written = low_write(::write, sockfd, _msg);
 
-	if (written == -1) {
+	if (written == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for written == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 }
 
@@ -124,10 +127,11 @@ void Socket::send(const std::string &_msg, SF::send _flags) const
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(::send, sockfd, _msg, flags);
 
-	if (sent == -1) {
+	if (sent == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for sent == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 }
 
@@ -139,10 +143,11 @@ void Socket::send(
 	const auto sent  = low_write(
 	  ::sendto, sockfd, _msg, flags, (sockaddr *) &_addr, sizeof(_addr));
 
-	if (sent == -1) {
+	if (sent == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for sent == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 }
 
@@ -154,10 +159,11 @@ std::string Socket::read(const int _bufSize) const
 
 	const auto recvd = low_read(::read, sockfd, str);
 
-	if (recvd == -1) {
+	if (recvd == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for bytes == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 	return str;
 }
@@ -171,10 +177,11 @@ std::string Socket::recv(const int _bufSize, SF::recv _flags) const
 	const auto flags = static_cast<int>(_flags);
 	const auto recvd = low_read(::recv, sockfd, str, flags);
 
-	if (recvd == -1) {
+	if (recvd == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for recvd == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 
 	return str;
@@ -192,10 +199,11 @@ std::string Socket::recv(
 	const auto recvd
 	  = low_read(::recvfrom, sockfd, str, flags, (sockaddr *) &_addr, &length);
 
-	if (recvd == -1) {
+	if (recvd == -1 && errno != static_cast<int>(EAGAIN) && errno != static_cast<int>(EWOULDBLOCK)) {
 		// TODO: Check for recvd == EAGAIN or EWOULDBLOCK and
 		// don't throw exception in that case.
-		throw std::runtime_error(net::method::getErrorMsg());
+		// CHECK if this is the right way to complete this TODO
+		throw std::runtime_error(net::method::getErrorMsg(errno));
 	}
 
 	return str;

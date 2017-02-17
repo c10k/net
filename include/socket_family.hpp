@@ -67,11 +67,11 @@ namespace SF {
 
 namespace method {
 
-	inline std::string getErrorMsg()
+	inline std::string getErrorMsg(int errorNumber)
 	{
 		static std::mutex lockToErrorString;
 		std::lock_guard<std::mutex> lockGuard(lockToErrorString);
-		char *errMsg = strerror(errno);
+		char *errMsg = strerror(errorNumber);
 		std::string returnString(errMsg);
 		return returnString;
 	}
