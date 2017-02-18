@@ -5,7 +5,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <mutex>
-#include <cstring>
 #include <errno.h>
 
 namespace net {
