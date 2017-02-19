@@ -150,7 +150,7 @@ void Socket::send(
 }
 
 
-std::string Socket::read(const int _bufSize, bool *_isErrorInNonBlocking) const
+std::string Socket::read(const int _bufSize, bool *_isSpecialErrorInNonBlocking) const
 {
 	std::string str;
 	str.reserve(_bufSize);
@@ -160,18 +160,18 @@ std::string Socket::read(const int _bufSize, bool *_isErrorInNonBlocking) const
 	const auto currentErrNo = errno;
 	errno                   = 0;
 	if (recvd == -1) {
-		if ( !_isErrorInNonBlocking || (_isErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))	// blocking & non blocking failure case
+		if ( !_isSpecialErrorInNonBlocking || (_isSpecialErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))	// blocking & non blocking failure case
 			throw std::runtime_error(net::method::getErrorMsg(currentErrNo));
-		// else if ( _isErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK) // non blocking failure case
+		// else if ( _isSpecialErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK) // non blocking failure case
 		// 	throw std::runtime_errro(net::method::getErrorMsg(currentErrNo));
 		else  // non blocking success case i.e. EAGAIN or EWOULDBLOCK
-			*_isErrorInNonBlocking = true;
+			*_isSpecialErrorInNonBlocking = true;
 	}
 	return str;
 }
 
 
-std::string Socket::recv(const int _bufSize, SF::recv _flags, bool *_isErrorInNonBlocking) const
+std::string Socket::recv(const int _bufSize, SF::recv _flags, bool *_isSpecialErrorInNonBlocking) const
 {
 	std::string str;
 	str.reserve(_bufSize);
@@ -182,10 +182,10 @@ std::string Socket::recv(const int _bufSize, SF::recv _flags, bool *_isErrorInNo
 	const auto currentErrNo = errno;
 	errno                   = 0;
 	if (recvd == -1) {
-		if ( !_isErrorInNonBlocking || (_isErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))
+		if ( !_isSpecialErrorInNonBlocking || (_isSpecialErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))
 			throw std::runtime_error(net::method::getErrorMsg(currentErrNo));
 		else
-			*_isErrorInNonBlocking = true;
+			*_isSpecialErrorInNonBlocking = true;
 	}
 
 	return str;
@@ -193,7 +193,7 @@ std::string Socket::recv(const int _bufSize, SF::recv _flags, bool *_isErrorInNo
 
 
 std::string Socket::recv(
-  sockaddr_storage &_addr, const int _bufSize, SF::recv _flags, bool *_isErrorInNonBlocking) const
+  sockaddr_storage &_addr, const int _bufSize, SF::recv _flags, bool *_isSpecialErrorInNonBlocking) const
 {
 	std::string str;
 	str.reserve(_bufSize);
@@ -206,10 +206,10 @@ std::string Socket::recv(
 	const auto currentErrNo = errno;
 	errno                   = 0;
 	if (recvd == -1) {
-		if ( !_isErrorInNonBlocking || (_isErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))
+		if ( !_isSpecialErrorInNonBlocking || (_isSpecialErrorInNonBlocking && currentErrNo != EAGAIN && currentErrNo != EWOULDBLOCK))
 			throw std::runtime_error(net::method::getErrorMsg(currentErrNo));
 		else
-			*_isErrorInNonBlocking = true;
+			*_isSpecialErrorInNonBlocking = true;
 	}
 
 	return str;
