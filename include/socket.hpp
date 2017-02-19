@@ -54,20 +54,22 @@ public:
 
 	void bind(const char[], const int = 0) const;
 	void start(const char[], const int = 0, const int = SOMAXCONN) const;
-	void connect(const char[], const int = 0) const;
-	Socket accept() const;
+	void connect(const char[], const int = 0, bool * = nullptr) const;
+	Socket accept(bool * = nullptr) const;
 
 
-	void write(const std::string &) const;
+	void write(const std::string &, bool * = nullptr) const;
 	std::string read(const int = 1024, bool * = nullptr) const;
 
-	void send(const std::string &, SF::send = SF::send::NONE) const;
-	std::string recv(const int = 1024, SF::recv = SF::recv::NONE, bool * = nullptr) const;
-
 	void send(
-	  const std::string &, sockaddr_storage &, SF::send = SF::send::NONE) const;
+	  const std::string &, SF::send = SF::send::NONE, bool * = nullptr) const;
+	void send(const std::string &, sockaddr_storage &,
+	  SF::send = SF::send::NONE, bool * = nullptr) const;
+
 	std::string recv(
-	  sockaddr_storage &, const int = 1024, SF::recv = SF::recv::NONE, bool * = nullptr) const;
+	  const int = 1024, SF::recv = SF::recv::NONE, bool * = nullptr) const;
+	std::string recv(sockaddr_storage &, const int = 1024,
+	  SF::recv = SF::recv::NONE, bool * = nullptr) const;
 
 
 	void set(/* options */) const {}

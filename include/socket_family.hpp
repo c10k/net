@@ -1,10 +1,11 @@
+#include <mutex>
 #include <cstring>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <mutex>
 #include <errno.h>
 
 namespace net {
@@ -28,13 +29,13 @@ namespace SF {
 
 
 	enum class type {
-		TCP      = SOCK_STREAM,
-		UDP      = SOCK_DGRAM,
-		SCTP     = SOCK_SEQPACKET,
-		RAW      = SOCK_RAW,
-		RDM      = SOCK_RDM,
-		NONBLOCK = SOCK_NONBLOCK,
-		CLOEXEC  = SOCK_CLOEXEC
+		TCP       = SOCK_STREAM,
+		UDP       = SOCK_DGRAM,
+		SEQPACKET = SOCK_SEQPACKET,
+		RAW       = SOCK_RAW,
+		RDM       = SOCK_RDM,
+		NONBLOCK  = SOCK_NONBLOCK,
+		CLOEXEC   = SOCK_CLOEXEC
 	};
 
 	enum class shut { READ = SHUT_RD, WRITE = SHUT_WR, READWRITE = SHUT_RDWR };
@@ -68,12 +69,13 @@ namespace method {
 
 	inline std::string getErrorMsg(const int errorNumber)
 	{
-		static std::mutex lockToErrorString;
-		std::lock_guard<std::mutex> lockGuard(lockToErrorString);
-		char *errMsg = strerror(errorNumber);
+		static std::mutex m;
+		std::lock_guard<std::mutex> lock(m);
+		const char *errMsg = strerror(errorNumber);
 		std::string returnString(errMsg);
 		return returnString;
 	}
+
 
 	inline int construct(
 	  sockaddr_in &addrStruct, const char _addr[], const int _port) noexcept
@@ -89,6 +91,7 @@ namespace method {
 	inline int construct(
 	  sockaddr_in6 &addrStruct, const char _addr[], const int _port) noexcept
 	{
+		// TODO: replace code with call to getaddrinfo()
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sin6_family = AF_INET6;
 		addrStruct.sin6_port   = htons(_port);
@@ -97,28 +100,12 @@ namespace method {
 	}
 
 
-	inline int construct(sockaddr_storage &addrStruct, SF::domain _d,
-	  const char _addr[], const int _port)
+	inline int construct(sockaddr_un &addrStruct, const char _addr[]) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
-
-		switch (_d) {
-			case SF::domain::IPv4: {
-				sockaddr_in *p = reinterpret_cast<sockaddr_in *>(&addrStruct);
-				p->sin_family  = AF_INET;
-				p->sin_port    = htons(_port);
-				return inet_pton(AF_INET, _addr, &p->sin_addr);
-			}
-
-			case SF::domain::IPv6: {
-				sockaddr_in6 *p = reinterpret_cast<sockaddr_in6 *>(&addrStruct);
-				p->sin6_family  = AF_INET6;
-				p->sin6_port    = htons(_port);
-				return inet_pton(AF_INET6, _addr, &p->sin6_addr);
-			}
-
-			default: return -1;
-		}
+		addrStruct.sun_family = AF_UNIX;
+		std::strncpy(addrStruct.sun_path, _addr, 108);
+		return 1;
 	}
 }
 }
