@@ -59,15 +59,15 @@ public:
 
 
 	void write(const std::string &) const;
-	std::string read(const int = 1024) const;
+	std::string read(const int = 1024, bool * = nullptr) const;
 
 	void send(const std::string &, SF::send = SF::send::NONE) const;
-	std::string recv(const int = 1024, SF::recv = SF::recv::NONE) const;
+	std::string recv(const int = 1024, SF::recv = SF::recv::NONE, bool * = nullptr) const;
 
 	void send(
 	  const std::string &, sockaddr_storage &, SF::send = SF::send::NONE) const;
 	std::string recv(
-	  sockaddr_storage &, const int = 1024, SF::recv = SF::recv::NONE) const;
+	  sockaddr_storage &, const int = 1024, SF::recv = SF::recv::NONE, bool * = nullptr) const;
 
 
 	void set(/* options */) const {}
