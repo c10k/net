@@ -1,26 +1,26 @@
 #include "socket.hpp"
 
-namespace net {
 
+namespace net {
 
 void Socket::start(const char _addr[], const int _port, const int _q)
 {
 	try {
 		switch (domain) {
 			case SF::domain::IPv4:
-				bind([&](sockaddr_in &s) {
+				bind([&](addrIpv4 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
 
 			case SF::domain::IPv6:
-				bind([&](sockaddr_in6 &s) {
+				bind([&](addrIpv6 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
 
 			case SF::domain::UNIX:
-				bind([&](sockaddr_un &s) {
+				bind([&](addrUnix &s) {
 					return net::methods::construct(s, _addr);
 				});
 				break;
@@ -46,21 +46,21 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 	try {
 		switch (domain) {
 			case SF::domain::IPv4:
-				connect([&](sockaddr_in &s) {
+				connect([&](addrIpv4 &s) {
 					return net::methods::construct(s, _addr, _port);
-				});
+				}, _errorNB);
 				break;
 
 			case SF::domain::IPv6:
-				connect([&](sockaddr_in6 &s) {
+				connect([&](addrIpv6 &s) {
 					return net::methods::construct(s, _addr, _port);
-				});
+				}, _errorNB);
 				break;
 
 			case SF::domain::UNIX:
-				connect([&](sockaddr_un &s) {
+				connect([&](addrUnix &s) {
 					return net::methods::construct(s, _addr);
-				});
+				}, _errorNB);
 				break;
 
 			default:
@@ -74,14 +74,50 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 
 Socket Socket::accept(bool *_errorNB) const
 {
-	auto peerAddr = std::make_unique<sockaddr_storage>();
+	union {
+		addrIpv4 ipv4;
+		addrIpv6 ipv6;
+		addrUnix unix;
+		addrStore store;
+	};
 
-	socklen_t peerAddrSize = sizeof(*peerAddr.get());
-	std::memset(peerAddr.get(), 0, peerAddrSize);
+	std::memset(&store, 0, sizeof(store));
 
-	auto client = ::accept(sockfd, (sockaddr *) peerAddr.get(), &peerAddrSize);
+	socklen_t addrSize = 0;
+	sockaddr *addrPtr  = nullptr;
 
+	switch (domain) {
+		case SF::domain::IPv4:
+			ipv4.sin_family = AF_INET;
+			std::memset(&ipv4, 0, sizeof(ipv4));
+			addrSize = sizeof(ipv4);
+			addrPtr  = reinterpret_cast<sockaddr *>(&ipv4);
+			break;
+
+		case SF::domain::IPv6:
+			ipv6.sin6_family = AF_INET6;
+			std::memset(&ipv6, 0, sizeof(ipv6));
+			addrSize = sizeof(ipv6);
+			addrPtr  = reinterpret_cast<sockaddr *>(&ipv6);
+			break;
+
+		case SF::domain::UNIX:
+			unix.sun_family = AF_UNIX;
+			std::memset(&unix, 0, sizeof(unix));
+			addrSize = sizeof(unix);
+			addrPtr  = reinterpret_cast<sockaddr *>(&unix);
+			break;
+
+		default:
+			store.ss_family = static_cast<int>(domain);
+			addrSize        = sizeof(store);
+			addrPtr         = reinterpret_cast<sockaddr *>(&store);
+			break;
+	}
+
+	const auto client    = ::accept(sockfd, addrPtr, &addrSize);
 	const auto currErrno = errno;
+
 	if (client == -1) {
 		if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
 			if (_errorNB != nullptr) {
@@ -94,7 +130,7 @@ Socket Socket::accept(bool *_errorNB) const
 		}
 	}
 
-	return Socket(client, peerAddr);
+	return Socket(client, domain, type, addrPtr);
 }
 
 
@@ -117,8 +153,8 @@ void Socket::write(const std::string &_msg, bool *_errorNB) const
 }
 
 
-void Socket::send(
-  const std::string &_msg, SF::send _flags, bool *_errorNB) const
+void Socket::send(const std::string &_msg, SF::send _flags,
+                  bool *_errorNB) const
 {
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(::send, sockfd, _msg, flags);
@@ -162,42 +198,14 @@ std::string Socket::read(const int _bufSize, bool *_errorNB) const
 }
 
 
-std::string Socket::recv(
-  const int _bufSize, SF::recv _flags, bool *_errorNB) const
+std::string Socket::recv(const int _bufSize, SF::recv _flags,
+                         bool *_errorNB) const
 {
 	std::string str;
 	str.reserve(_bufSize);
 
 	const auto flags = static_cast<int>(_flags);
 	const auto recvd = low_read(::recv, sockfd, str, flags);
-
-	const auto currErrno = errno;
-	if (recvd == -1) {
-		if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
-			if (_errorNB != nullptr) {
-				*_errorNB = true;
-			} else {
-				throw std::invalid_argument("errorNB argument missing");
-			}
-		} else {
-			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
-		}
-	}
-
-	return str;
-}
-
-
-std::string Socket::recv(sockaddr_storage &_addr, const int _bufSize,
-  SF::recv _flags, bool *_errorNB) const
-{
-	std::string str;
-	str.reserve(_bufSize);
-
-	const auto flags = static_cast<int>(_flags);
-	socklen_t length = sizeof(_addr);
-	const auto recvd
-	  = low_read(::recvfrom, sockfd, str, flags, (sockaddr *) &_addr, &length);
 
 	const auto currErrno = errno;
 	if (recvd == -1) {

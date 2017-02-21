@@ -3,6 +3,8 @@
 
 #include <mutex>
 #include <cstring>
+
+extern "C" {
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -10,8 +12,14 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+}
 
 namespace net {
+
+using addrIpv4  = sockaddr_in;
+using addrIpv6  = sockaddr_in6;
+using addrUnix  = sockaddr_un;
+using addrStore = sockaddr_storage;
 
 namespace SF {
 
@@ -103,8 +111,8 @@ namespace methods {
 	}
 
 
-	inline int construct(
-	  sockaddr_in &addrStruct, const char _addr[], const int _port) noexcept
+	inline int construct(addrIpv4 &addrStruct, const char _addr[],
+	                     const int _port) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sin_family = AF_INET;
@@ -114,8 +122,8 @@ namespace methods {
 	}
 
 
-	inline int construct(
-	  sockaddr_in6 &addrStruct, const char _addr[], const int _port) noexcept
+	inline int construct(addrIpv6 &addrStruct, const char _addr[],
+	                     const int _port) noexcept
 	{
 		// TODO: replace code with call to getaddrinfo()
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
@@ -126,7 +134,7 @@ namespace methods {
 	}
 
 
-	inline int construct(sockaddr_un &addrStruct, const char _addr[]) noexcept
+	inline int construct(addrUnix &addrStruct, const char _addr[]) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sun_family = AF_UNIX;

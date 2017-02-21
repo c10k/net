@@ -9,7 +9,7 @@ int main()
 
 		Socket s(SF::domain::IPv4, SF::type::TCP);
 		s.connect("0.0.0.0", 24000);
-		s.write("Hello World!!");
+		s.send("Hello World!!");
 
 	} catch (std::exception &e) {
 		std::cerr << e.what() << "\n";
