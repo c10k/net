@@ -1,3 +1,6 @@
+#ifndef SOCKET_FAMILY_HPP
+#define SOCKET_FAMILY_HPP
+
 #include <mutex>
 #include <cstring>
 #include <sys/socket.h>
@@ -62,10 +65,33 @@ namespace SF {
 	{
 		return static_cast<send>(static_cast<int>(a) | static_cast<int>(b));
 	}
+
+
+	enum class opt {
+		BROADCAST = SO_BROADCAST,
+		DEBUG     = SO_DEBUG,
+		DONTROUTE = SO_DONTROUTE,
+		ERROR     = SO_ERROR,
+		KEEPALIVE = SO_KEEPALIVE,
+		LINGER    = SO_LINGER,
+		OOBINLINE = SO_OOBINLINE,
+		RCVBUF    = SO_RCVBUF,
+		SNDBUF    = SO_SNDBUF,
+		RCVLOWAT  = SO_RCVLOWAT,
+		SNDLOWAT  = SO_SNDLOWAT,
+		RCVTIMEO  = SO_RCVTIMEO,
+		SNDTIMEO  = SO_SNDTIMEO,
+		REUSEADDR = SO_REUSEADDR,
+		REUSEPORT = SO_REUSEPORT,
+		TYPE      = SO_TYPE,
+#ifdef SO_USELOOPBACK
+		USELOOPBACK = SO_USELOOPBACK
+#endif
+	};
 }
 
 
-namespace method {
+namespace methods {
 
 	inline std::string getErrorMsg(const int errorNumber)
 	{
@@ -109,3 +135,5 @@ namespace method {
 	}
 }
 }
+
+#endif
