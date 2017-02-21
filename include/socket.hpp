@@ -422,7 +422,7 @@ public:
 
 	template <typename F>
 	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIpv4 &>()), void()) const
+	  -> decltype(_fn(std::declval<const addrIpv4 &>()), std::string()) const
 	{
 		addrIpv4 addr;
 		std::string str;
@@ -454,7 +454,7 @@ public:
 
 	template <typename F>
 	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIpv6 &>()), void()) const
+	  -> decltype(_fn(std::declval<const addrIpv6 &>()), std::string()) const
 	{
 		addrIpv6 addr;
 		std::string str;
@@ -486,7 +486,7 @@ public:
 
 	template <typename F>
 	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrUnix &>()), void()) const
+	  -> decltype(_fn(std::declval<const addrUnix &>()), std::string()) const
 	{
 		addrUnix addr;
 		std::string str;
