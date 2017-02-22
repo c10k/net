@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <cstring>
+#include <utility>
 
 extern "C" {
 #include <sys/socket.h>
@@ -95,6 +96,53 @@ namespace SF {
 #ifdef SO_USELOOPBACK
 		USELOOPBACK = SO_USELOOPBACK
 #endif
+	};
+
+	struct sockOpt {
+		union {
+			timeval t;
+			linger l;
+			int i;
+		};
+		enum { TIME, LINGER, INT } type;
+		sockOpt()
+		{
+			i    = 0;
+			type = INT;
+		}
+		auto getType() const noexcept { return type; }
+		void setTime(const decltype(t.tv_sec) seconds,
+		             const decltype(t.tv_usec) microseconds)
+		{
+			t.tv_sec  = seconds;
+			t.tv_usec = microseconds;
+			type      = TIME;
+		}
+		auto getTime() const
+		{
+			return (type == TIME)
+			  ? std::make_pair(t.tv_sec, t.tv_usec)
+			  : std::make_pair(static_cast<decltype(t.tv_sec)>(0),
+			                   static_cast<decltype(t.tv_usec)>(0));
+		}
+		void setLinger(const bool _on, const int _linger)
+		{
+			l.l_onoff  = _on ? 1 : 0;
+			l.l_linger = _linger;
+			type       = LINGER;
+		}
+		auto getLinger() const
+		{
+			return (type == LINGER)
+			  ? std::make_pair(static_cast<bool>(l.l_onoff), l.l_linger)
+			  : std::make_pair(false, 0);
+		}
+		void setValue(const int _n)
+		{
+			i    = _n;
+			type = INT;
+		}
+		auto getValue() const noexcept { return (type == INT) ? i : 0; }
 	};
 }
 

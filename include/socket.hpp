@@ -66,31 +66,7 @@ private:
 	}
 
 
-	Socket(const int _sockfd, SF::domain _domain, SF::type _type,
-	       const void *_addr)
-	    : sockfd(_sockfd), domain(_domain), type(_type)
-	{
-		std::memset(&store, 0, sizeof(store));
-
-		switch (domain) {
-			case SF::domain::IPv4:
-				ipv4.sin_family = AF_INET;
-				std::memcpy(&ipv4, _addr, sizeof(ipv4));
-				break;
-
-			case SF::domain::IPv6:
-				ipv6.sin6_family = AF_INET6;
-				std::memcpy(&ipv6, _addr, sizeof(ipv6));
-				break;
-
-			case SF::domain::UNIX:
-				unix.sun_family = AF_UNIX;
-				std::memcpy(&unix, _addr, sizeof(unix));
-				break;
-
-			default: std::memcpy(&store, _addr, sizeof(store)); break;
-		}
-	}
+	Socket(const int, SF::domain, SF::type, const void *);
 
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
@@ -517,8 +493,8 @@ public:
 	// recv method calls
 
 
-	void setOpt(SF::opt, void *) const;
-	void getOpt(SF::opt, void *) const;
+	void setOpt(SF::opt, SF::sockOpt) const;
+	SF::sockOpt getOpt(SF::opt) const;
 
 	void stop(SF::shut s) const noexcept
 	{
