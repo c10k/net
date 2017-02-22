@@ -1,59 +1,65 @@
 #include "socket.hpp"
 
+
 namespace net {
 
-void Socket::bind(const char _addr[], const int _port) const
+Socket::Socket(const int _sockfd, SF::domain _domain, SF::type _type,
+               const void *_addr)
+    : sockfd(_sockfd), domain(_domain), type(_type)
 {
-	auto res = -1;
+	std::memset(&store, 0, sizeof(store));
+
 	switch (domain) {
+		case SF::domain::IPv4:
+			ipv4.sin_family = AF_INET;
+			std::memcpy(&ipv4, _addr, sizeof(ipv4));
+			break;
 
-		case SF::domain::IPv4: {
-			sockaddr_in servaddr;
-			res = net::method::construct(servaddr, _addr, _port);
-			if (res == 1) {
-				res = ::bind(sockfd, (sockaddr *) &servaddr, sizeof(servaddr));
-				res = (res == 0) ? 1 : res;
-			}
-		} break;
+		case SF::domain::IPv6:
+			ipv6.sin6_family = AF_INET6;
+			std::memcpy(&ipv6, _addr, sizeof(ipv6));
+			break;
 
-		case SF::domain::IPv6: {
-			sockaddr_in6 servaddr;
-			res = net::method::construct(servaddr, _addr, _port);
-			if (res == 1) {
-				res = ::bind(sockfd, (sockaddr *) &servaddr, sizeof(servaddr));
-				res = (res == 0) ? 1 : res;
-			}
-		} break;
+		case SF::domain::UNIX:
+			unix.sun_family = AF_UNIX;
+			std::memcpy(&unix, _addr, sizeof(unix));
+			break;
 
-		case SF::domain::UNIX: {
-			sockaddr_un servaddr;
-			res = net::method::construct(servaddr, _addr);
-			unlink(servaddr.sun_path);
-			res = ::bind(sockfd, (sockaddr *) &servaddr, sizeof(servaddr));
-			res = (res == 0) ? 1 : res;
-		} break;
-
-		default: throw std::logic_error("Protocol yet not implemented");
-	}
-
-	const auto currErrno = errno;
-	if (res == -1) {
-		throw std::runtime_error(net::method::getErrorMsg(currErrno));
-	} else if (res == 0) {
-		throw std::invalid_argument("Address argument invalid");
+		default: std::memcpy(&store, _addr, sizeof(store)); break;
 	}
 }
 
 
-void Socket::start(const char _addr[], const int _port, const int _q) const
+void Socket::start(const char _addr[], const int _port, const int _q)
 {
 	try {
-		bind(_addr, _port);
+		switch (domain) {
+			case SF::domain::IPv4:
+				bind([&](addrIpv4 &s) {
+					return net::methods::construct(s, _addr, _port);
+				});
+				break;
+
+			case SF::domain::IPv6:
+				bind([&](addrIpv6 &s) {
+					return net::methods::construct(s, _addr, _port);
+				});
+				break;
+
+			case SF::domain::UNIX:
+				bind([&](addrUnix &s) {
+					return net::methods::construct(s, _addr);
+				});
+				break;
+
+			default:
+				throw std::invalid_argument("Protocol family not implemented");
+		}
 
 		if (type == SF::type::TCP || type == SF::type::SEQPACKET) {
 			if (listen(sockfd, _q) < 0) {
 				const auto currErrno = errno;
-				throw std::runtime_error(net::method::getErrorMsg(currErrno));
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 			}
 		}
 	} catch (...) {
@@ -62,65 +68,83 @@ void Socket::start(const char _addr[], const int _port, const int _q) const
 }
 
 
-void Socket::connect(const char _addr[], const int _port, bool *_errorNB) const
+void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 {
-	auto res = -1;
-	switch (domain) {
-		case SF::domain::IPv4: {
-			sockaddr_in addr;
-			res = net::method::construct(addr, _addr, _port);
-			if (res == 1) {
-				res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
-				res = (res == 0) ? 1 : res;
-			}
-		} break;
+	try {
+		switch (domain) {
+			case SF::domain::IPv4:
+				connect([&](addrIpv4 &s) {
+					return net::methods::construct(s, _addr, _port);
+				}, _errorNB);
+				break;
 
-		case SF::domain::IPv6: {
-			sockaddr_in6 addr;
-			res = net::method::construct(addr, _addr, _port);
-			if (res == 1) {
-				res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
-				res = (res == 0) ? 1 : res;
-			}
-		} break;
+			case SF::domain::IPv6:
+				connect([&](addrIpv6 &s) {
+					return net::methods::construct(s, _addr, _port);
+				}, _errorNB);
+				break;
 
-		case SF::domain::UNIX: {
-			sockaddr_un addr;
-			res = net::method::construct(addr, _addr);
-			res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
-			res = (res == 0) ? 1 : res;
-		} break;
+			case SF::domain::UNIX:
+				connect([&](addrUnix &s) {
+					return net::methods::construct(s, _addr);
+				}, _errorNB);
+				break;
 
-		default: throw std::logic_error("Protocol yet not implemented");
-	}
-
-	const auto currErrno = errno;
-	if (res == -1) {
-		if (currErrno == EINPROGRESS) {
-			if (_errorNB != nullptr) {
-				*_errorNB = true;
-			} else {
-				throw std::invalid_argument("errorNB argument missing");
-			}
-		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			default:
+				throw std::invalid_argument("Protocol family not implemented");
 		}
-	} else if (res == 0) {
-		throw std::invalid_argument("Address argument invalid");
+	} catch (...) {
+		throw;
 	}
 }
 
 
 Socket Socket::accept(bool *_errorNB) const
 {
-	auto peerAddr = std::make_unique<sockaddr_storage>();
+	union {
+		addrIpv4 ipv4;
+		addrIpv6 ipv6;
+		addrUnix unix;
+		addrStore store;
+	};
 
-	socklen_t peerAddrSize = sizeof(*peerAddr.get());
-	std::memset(peerAddr.get(), 0, peerAddrSize);
+	std::memset(&store, 0, sizeof(store));
 
-	auto client = ::accept(sockfd, (sockaddr *) peerAddr.get(), &peerAddrSize);
+	socklen_t addrSize = 0;
+	sockaddr *addrPtr  = nullptr;
 
+	switch (domain) {
+		case SF::domain::IPv4:
+			ipv4.sin_family = AF_INET;
+			std::memset(&ipv4, 0, sizeof(ipv4));
+			addrSize = sizeof(ipv4);
+			addrPtr  = reinterpret_cast<sockaddr *>(&ipv4);
+			break;
+
+		case SF::domain::IPv6:
+			ipv6.sin6_family = AF_INET6;
+			std::memset(&ipv6, 0, sizeof(ipv6));
+			addrSize = sizeof(ipv6);
+			addrPtr  = reinterpret_cast<sockaddr *>(&ipv6);
+			break;
+
+		case SF::domain::UNIX:
+			unix.sun_family = AF_UNIX;
+			std::memset(&unix, 0, sizeof(unix));
+			addrSize = sizeof(unix);
+			addrPtr  = reinterpret_cast<sockaddr *>(&unix);
+			break;
+
+		default:
+			store.ss_family = static_cast<int>(domain);
+			addrSize        = sizeof(store);
+			addrPtr         = reinterpret_cast<sockaddr *>(&store);
+			break;
+	}
+
+	const auto client    = ::accept(sockfd, addrPtr, &addrSize);
 	const auto currErrno = errno;
+
 	if (client == -1) {
 		if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
 			if (_errorNB != nullptr) {
@@ -129,11 +153,11 @@ Socket Socket::accept(bool *_errorNB) const
 				throw std::invalid_argument("errorNB argument missing");
 			}
 		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 	}
 
-	return Socket(client, peerAddr);
+	return Socket(client, domain, type, addrPtr);
 }
 
 
@@ -150,14 +174,14 @@ void Socket::write(const std::string &_msg, bool *_errorNB) const
 				throw std::invalid_argument("errorNB argument missing");
 			}
 		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 	}
 }
 
 
-void Socket::send(
-  const std::string &_msg, SF::send _flags, bool *_errorNB) const
+void Socket::send(const std::string &_msg, SF::send _flags,
+                  bool *_errorNB) const
 {
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(::send, sockfd, _msg, flags);
@@ -171,29 +195,7 @@ void Socket::send(
 				throw std::invalid_argument("errorNB argument missing");
 			}
 		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
-		}
-	}
-}
-
-
-void Socket::send(const std::string &_msg, sockaddr_storage &_addr,
-  SF::send _flags, bool *_errorNB) const
-{
-	const auto flags = static_cast<int>(_flags);
-	const auto sent  = low_write(
-	  ::sendto, sockfd, _msg, flags, (sockaddr *) &_addr, sizeof(_addr));
-
-	const auto currErrno = errno;
-	if (sent == -1) {
-		if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
-			if (_errorNB != nullptr) {
-				*_errorNB = true;
-			} else {
-				throw std::invalid_argument("errorNB argument missing");
-			}
-		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 	}
 }
@@ -215,7 +217,7 @@ std::string Socket::read(const int _bufSize, bool *_errorNB) const
 				throw std::invalid_argument("errorNB argument missing");
 			}
 		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 	}
 
@@ -223,8 +225,8 @@ std::string Socket::read(const int _bufSize, bool *_errorNB) const
 }
 
 
-std::string Socket::recv(
-  const int _bufSize, SF::recv _flags, bool *_errorNB) const
+std::string Socket::recv(const int _bufSize, SF::recv _flags,
+                         bool *_errorNB) const
 {
 	std::string str;
 	str.reserve(_bufSize);
@@ -241,7 +243,7 @@ std::string Socket::recv(
 				throw std::invalid_argument("errorNB argument missing");
 			}
 		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
+			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 	}
 
@@ -249,30 +251,88 @@ std::string Socket::recv(
 }
 
 
-std::string Socket::recv(sockaddr_storage &_addr, const int _bufSize,
-  SF::recv _flags, bool *_errorNB) const
+void Socket::setOpt(SF::opt _opType, SF::sockOpt _opValue) const
 {
-	std::string str;
-	str.reserve(_bufSize);
+	enum type {
+		TIME   = _opValue.TIME,
+		LINGER = _opValue.LINGER,
+		INT    = _opValue.INT
+	};
 
-	const auto flags = static_cast<int>(_flags);
-	socklen_t length = sizeof(_addr);
-	const auto recvd
-	  = low_read(::recvfrom, sockfd, str, flags, (sockaddr *) &_addr, &length);
+	void *ptr     = nullptr;
+	socklen_t len = 0;
 
-	const auto currErrno = errno;
-	if (recvd == -1) {
-		if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
-			if (_errorNB != nullptr) {
-				*_errorNB = true;
-			} else {
-				throw std::invalid_argument("errorNB argument missing");
+
+	switch (_opType) {
+
+		case SF::opt::LINGER:
+			if (_opValue.getType() != type::LINGER) {
+				throw std::invalid_argument("Invalid socket option");
 			}
-		} else {
-			throw std::runtime_error(net::method::getErrorMsg(currErrno));
-		}
+			ptr = (void *) &_opValue.l;
+			len = sizeof(_opValue.l);
+			break;
+
+		case SF::opt::RCVTIMEO:
+		case SF::opt::SNDTIMEO:
+			if (_opValue.getType() != type::TIME) {
+				throw std::invalid_argument("Invalid socket option");
+			}
+			ptr = (void *) &_opValue.t;
+			len = sizeof(_opValue.t);
+			break;
+
+		default:
+			if (_opValue.getType() != type::INT) {
+				throw std::invalid_argument("Invalid socket option");
+			}
+			ptr = (void *) &_opValue.i;
+			len = sizeof(_opValue.i);
 	}
 
-	return str;
+	const auto optname   = static_cast<int>(_opType);
+	const auto res       = setsockopt(sockfd, SOL_SOCKET, optname, ptr, len);
+	const auto currErrno = errno;
+	if (res == -1) {
+		throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+	}
+}
+
+
+SF::sockOpt Socket::getOpt(SF::opt _opType) const
+{
+	SF::sockOpt opt;
+	void *ptr     = nullptr;
+	socklen_t len = 0;
+
+	switch (_opType) {
+
+		case SF::opt::LINGER:
+			opt.setLinger(false, 0);
+			ptr = (void *) &opt.l;
+			len = sizeof(opt.l);
+			break;
+
+		case SF::opt::RCVTIMEO:
+		case SF::opt::SNDTIMEO:
+			opt.setTime(0, 0);
+			ptr = (void *) &opt.t;
+			len = sizeof(opt.t);
+			break;
+
+		default:
+			opt.setValue(0);
+			ptr = (void *) &opt.i;
+			len = sizeof(opt.i);
+	}
+
+	const auto optname   = static_cast<int>(_opType);
+	const auto res       = getsockopt(sockfd, SOL_SOCKET, optname, ptr, &len);
+	const auto currErrno = errno;
+	if (res == -1) {
+		throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+	}
+
+	return opt;
 }
 }

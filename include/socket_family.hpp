@@ -1,5 +1,11 @@
+#ifndef SOCKET_FAMILY_HPP
+#define SOCKET_FAMILY_HPP
+
 #include <mutex>
 #include <cstring>
+#include <utility>
+
+extern "C" {
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -7,8 +13,14 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+}
 
 namespace net {
+
+using addrIpv4  = sockaddr_in;
+using addrIpv6  = sockaddr_in6;
+using addrUnix  = sockaddr_un;
+using addrStore = sockaddr_storage;
 
 namespace SF {
 
@@ -62,10 +74,80 @@ namespace SF {
 	{
 		return static_cast<send>(static_cast<int>(a) | static_cast<int>(b));
 	}
+
+
+	enum class opt {
+		BROADCAST = SO_BROADCAST,
+		DEBUG     = SO_DEBUG,
+		DONTROUTE = SO_DONTROUTE,
+		ERROR     = SO_ERROR,
+		KEEPALIVE = SO_KEEPALIVE,
+		LINGER    = SO_LINGER,
+		OOBINLINE = SO_OOBINLINE,
+		RCVBUF    = SO_RCVBUF,
+		SNDBUF    = SO_SNDBUF,
+		RCVLOWAT  = SO_RCVLOWAT,
+		SNDLOWAT  = SO_SNDLOWAT,
+		RCVTIMEO  = SO_RCVTIMEO,
+		SNDTIMEO  = SO_SNDTIMEO,
+		REUSEADDR = SO_REUSEADDR,
+		REUSEPORT = SO_REUSEPORT,
+		TYPE      = SO_TYPE,
+#ifdef SO_USELOOPBACK
+		USELOOPBACK = SO_USELOOPBACK
+#endif
+	};
+
+	struct sockOpt {
+		union {
+			timeval t;
+			linger l;
+			int i;
+		};
+		enum { TIME, LINGER, INT } type;
+		sockOpt()
+		{
+			i    = 0;
+			type = INT;
+		}
+		auto getType() const noexcept { return type; }
+		void setTime(const decltype(t.tv_sec) seconds,
+		             const decltype(t.tv_usec) microseconds)
+		{
+			t.tv_sec  = seconds;
+			t.tv_usec = microseconds;
+			type      = TIME;
+		}
+		auto getTime() const
+		{
+			return (type == TIME)
+			  ? std::make_pair(t.tv_sec, t.tv_usec)
+			  : std::make_pair(static_cast<decltype(t.tv_sec)>(0),
+			                   static_cast<decltype(t.tv_usec)>(0));
+		}
+		void setLinger(const bool _on, const int _linger)
+		{
+			l.l_onoff  = _on ? 1 : 0;
+			l.l_linger = _linger;
+			type       = LINGER;
+		}
+		auto getLinger() const
+		{
+			return (type == LINGER)
+			  ? std::make_pair(static_cast<bool>(l.l_onoff), l.l_linger)
+			  : std::make_pair(false, 0);
+		}
+		void setValue(const int _n)
+		{
+			i    = _n;
+			type = INT;
+		}
+		auto getValue() const noexcept { return (type == INT) ? i : 0; }
+	};
 }
 
 
-namespace method {
+namespace methods {
 
 	inline std::string getErrorMsg(const int errorNumber)
 	{
@@ -77,8 +159,8 @@ namespace method {
 	}
 
 
-	inline int construct(
-	  sockaddr_in &addrStruct, const char _addr[], const int _port) noexcept
+	inline int construct(addrIpv4 &addrStruct, const char _addr[],
+	                     const int _port) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sin_family = AF_INET;
@@ -88,8 +170,8 @@ namespace method {
 	}
 
 
-	inline int construct(
-	  sockaddr_in6 &addrStruct, const char _addr[], const int _port) noexcept
+	inline int construct(addrIpv6 &addrStruct, const char _addr[],
+	                     const int _port) noexcept
 	{
 		// TODO: replace code with call to getaddrinfo()
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
@@ -100,7 +182,7 @@ namespace method {
 	}
 
 
-	inline int construct(sockaddr_un &addrStruct, const char _addr[]) noexcept
+	inline int construct(addrUnix &addrStruct, const char _addr[]) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
 		addrStruct.sun_family = AF_UNIX;
@@ -109,3 +191,5 @@ namespace method {
 	}
 }
 }
+
+#endif
