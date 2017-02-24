@@ -149,6 +149,14 @@ namespace SF {
 
 namespace methods {
 
+	/** @function getErrorMsg
+	* Returns the standard human readable error message corresponding to given
+	* errorNumber.
+	*
+	* @param {int} errorNumber Error number whose string to return.
+	* @Returns {string} Standard error string corresponding to given
+	* errorNumber.
+	*/
 	inline std::string getErrorMsg(const int errorNumber)
 	{
 		static std::mutex m;
@@ -158,7 +166,18 @@ namespace methods {
 		return returnString;
 	}
 
-
+	/** @function construct
+	* Fills the given addrIpv4 structure object with given ip address and port.
+	*
+	* @param {addrIpv4} addrStruct Ipv4 structure object that needs to be filled
+	* with given ip address and port.
+	* @param {char []} _addr Ip address which needs to be filled in the addrIpv4
+	* structure object.
+	* @param {int} _port Port number which needs to be filled in the addrIpv4
+	* structure object.
+	* @Returns {int} 1 if sucessful, 0 if given ip address does not represent a
+	* valid ip address, -1 if some error occurred.
+	*/
 	inline int construct(addrIpv4 &addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
@@ -170,6 +189,18 @@ namespace methods {
 	}
 
 
+	/** @function construct
+	* Fills the given addrIpv6 structure object with given ip address and port.
+	*
+	* @param {addrIpv6} addrStruct Ipv6 structure object that needs to be filled
+	* with given ip address and port.
+	* @param {char []} _addr Ip address which needs to be filled in the addrIpv6
+	* structure object.
+	* @param {int} _port Port number which needs to be filled in the addrIpv6
+	* structure object.
+	* @Returns {int} 1 if sucessful, 0 if given ip address does not represent a
+	* valid ip address, -1 if some error occurred.
+	*/
 	inline int construct(addrIpv6 &addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
@@ -182,6 +213,15 @@ namespace methods {
 	}
 
 
+	/** @function construct
+	* Fills the given addrUnix structure object with given ip address and port.
+	*
+	* @param {addrUnix} addrStruct addrUnix structure object that needs to be
+	* filled with given path.
+	* @param {char []} _addr Path which needs to be filled in the addrUnix
+	* structure object.
+	* @Returns {int} Always returns 1.
+	*/
 	inline int construct(addrUnix &addrStruct, const char _addr[]) noexcept
 	{
 		std::memset(&addrStruct, 0, sizeof(addrStruct));
