@@ -35,13 +35,13 @@ void Socket::start(const char _addr[], const int _port, const int _q)
 	try {
 		switch (domain) {
 			case SF::domain::IPv4:
-				bind([&](addrIpv4 &s) {
+				bind([&](addrIPv4 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
 
 			case SF::domain::IPv6:
-				bind([&](addrIpv6 &s) {
+				bind([&](addrIPv6 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
@@ -73,13 +73,13 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 	try {
 		switch (domain) {
 			case SF::domain::IPv4:
-				connect([&](addrIpv4 &s) {
+				connect([&](addrIPv4 &s) {
 					return net::methods::construct(s, _addr, _port);
 				}, _errorNB);
 				break;
 
 			case SF::domain::IPv6:
-				connect([&](addrIpv6 &s) {
+				connect([&](addrIPv6 &s) {
 					return net::methods::construct(s, _addr, _port);
 				}, _errorNB);
 				break;
@@ -102,8 +102,8 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 Socket Socket::accept(bool *_errorNB) const
 {
 	union {
-		addrIpv4 ipv4;
-		addrIpv6 ipv6;
+		addrIPv4 ipv4;
+		addrIPv6 ipv6;
 		addrUnix unix;
 		addrStore store;
 	};
@@ -163,7 +163,7 @@ Socket Socket::accept(bool *_errorNB) const
 
 void Socket::write(const std::string &_msg, bool *_errorNB) const
 {
-	const auto written = low_write(::write, sockfd, _msg);
+	const auto written = low_write(::write, _msg);
 
 	const auto currErrno = errno;
 	if (written == -1) {
@@ -184,7 +184,7 @@ void Socket::send(const std::string &_msg, SF::send _flags,
                   bool *_errorNB) const
 {
 	const auto flags = static_cast<int>(_flags);
-	const auto sent  = low_write(::send, sockfd, _msg, flags);
+	const auto sent  = low_write(::send, _msg, flags);
 
 	const auto currErrno = errno;
 	if (sent == -1) {
@@ -206,7 +206,7 @@ std::string Socket::read(const int _bufSize, bool *_errorNB) const
 	std::string str;
 	str.reserve(_bufSize);
 
-	const auto recvd = low_read(::read, sockfd, str);
+	const auto recvd = low_read(::read, str);
 
 	const auto currErrno = errno;
 	if (recvd == -1) {
@@ -232,7 +232,7 @@ std::string Socket::recv(const int _bufSize, SF::recv _flags,
 	str.reserve(_bufSize);
 
 	const auto flags = static_cast<int>(_flags);
-	const auto recvd = low_read(::recv, sockfd, str, flags);
+	const auto recvd = low_read(::recv, str, flags);
 
 	const auto currErrno = errno;
 	if (recvd == -1) {

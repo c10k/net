@@ -11,7 +11,7 @@ namespace net {
 
 /**
 * @class net::Socket
-* Socket class to create POSIX sockets.
+* Socket class to create Berkeley sockets.
 * Uses socket domains from domain enum in SF namespace from socket_family.hpp
 * Uses socket types from type enum in SF namespace from socket_family.hpp
 */
@@ -19,34 +19,34 @@ class Socket final {
 private:
 	union {
 		addrStore store;
-		addrIpv4 ipv4;
-		addrIpv6 ipv6;
+		addrIPv4 ipv4;
+		addrIPv6 ipv6;
 		addrUnix unix;
 	};
 	int sockfd;
 	SF::domain domain;
 	SF::type type;
 
-	/** @method low_write
+
+	/**
+	* @method low_write
 	* @access private
 	* Writes given _msg using _sockfd by calling _fn with args having flags and
 	* destination socket address.
 	*
 	* @param {callable} _fn Some callable that writes using socket descriptor.
-	* @param {int} _sockfd Descriptor representing a socket.
-	* @param {string} _msg Msg to write on _sockfd.
+	* @param {string} _msg Msg to write on sockfd.
 	* @param {parameter_pack} args Flags, destination sockaddr objects and their
 	* lengths.
 	* @returns {ssize_t} Status of writing _msg using socket descriptor / Number
 	* of bytes written using socket descriptor.
 	*/
 	template <typename Fn, typename... Args>
-	auto low_write(Fn &&_fn, const int _sockfd, const std::string &_msg,
-	               Args &&... args) const
+	auto low_write(Fn &&_fn, const std::string &_msg, Args &&... args) const
 	{
 		auto written = 0, count = 0;
 		do {
-			written = std::forward<Fn>(_fn)(_sockfd, _msg.c_str() + count,
+			written = std::forward<Fn>(_fn)(sockfd, _msg.c_str() + count,
 			                                _msg.length() - count,
 			                                std::forward<Args>(args)...);
 			count += written;
@@ -55,13 +55,14 @@ private:
 		return written;
 	}
 
-	/** @method low_read
+
+	/**
+	* @method low_read
 	* @access private
-	* Reads using _sockfd by calling _fn  with args having flags and destination
+	* Reads using sockfd by calling _fn  with args having flags and destination
 	* socket address.
 	*
 	* @param {callable} _fn Some callable that reads using socket descriptor.
-	* @param {int} _sockfd Descriptor representing a socket.
 	* @param {string} _str String to store the data.
 	* @param {parameter_pack} args Flags, destination sockaddr objects and their
 	* lengths.
@@ -69,8 +70,7 @@ private:
 	* of bytes read using socket descriptor.
 	*/
 	template <typename Fn, typename... Args>
-	auto low_read(Fn &&_fn, const int _sockfd, std::string &_str,
-	              Args &&... args) const
+	auto low_read(Fn &&_fn, std::string &_str, Args &&... args) const
 	{
 		ssize_t recvd = 0;
 		size_t count  = 0;
@@ -79,7 +79,7 @@ private:
 		const auto buffer  = std::make_unique<char[]>(bufSize + 1);
 
 		do {
-			recvd = std::forward<Fn>(_fn)(_sockfd, buffer.get() + count,
+			recvd = std::forward<Fn>(_fn)(sockfd, buffer.get() + count,
 			                              bufSize - count,
 			                              std::forward<Args>(args)...);
 			count += recvd;
@@ -95,7 +95,9 @@ private:
 		return recvd;
 	}
 
-	/** @construct Socket
+
+	/**
+	* @construct Socket
 	* @access private
 	* @param {int} _sockfd Descriptor representing a socket.
 	* @param {SF::domain} _domain Socket domain.
@@ -107,8 +109,10 @@ private:
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
 
+
 public:
-	/** @construct net::Socket.
+	/**
+	* @construct net::Socket
 	* @access public
 	* @param {SF::domain} _domain Socket domain.
 	* @param {SF::type} _type Socket type.
@@ -135,7 +139,9 @@ public:
 		}
 	}
 
-	/** @construct net::Socket using another net::Socket.
+
+	/**
+	* @construct net::Socket using another net::Socket.
 	* @access public
 	* @param {Socket} s Rvalue of type socket.
 	*/
@@ -154,7 +160,9 @@ public:
 		}
 	}
 
-	/** @method getSocket
+
+	/**
+	* @method getSocket
 	* @access public
 	* Get the socket descriptor in net::Socket.
 	*
@@ -163,22 +171,20 @@ public:
 	auto getSocket() const noexcept { return sockfd; }
 
 
-	// Bind method calls
-
-	/** @method bind
+	/**
+	* @method bind
 	* @access public
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill addrIpv4 object.
+	* the callable provided to fill addrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIpv4 or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv4.
 	*/
 	template <typename F>
-	auto bind(F _fn) -> decltype(_fn(std::declval<addrIpv4 &>()), void()) const
+	auto bind(F _fn) -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
 	{
-		addrIpv4 addr;
+		addrIPv4 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -196,20 +202,21 @@ public:
 		ipv4 = addr;
 	}
 
-	/** @method bind
+
+	/**
+	* @method bind
 	* @access public
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill addrIpv6 object.
+	* the callable provided to fill addrIPv6 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIpv6 or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv6.
 	*/
 	template <typename F>
-	auto bind(F _fn) -> decltype(_fn(std::declval<addrIpv6 &>()), void()) const
+	auto bind(F _fn) -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
 	{
-		addrIpv6 addr;
+		addrIPv6 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -227,15 +234,16 @@ public:
 		ipv6 = addr;
 	}
 
-	/** @method bind
+
+	/**
+	* @method bind
 	* @access public
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
 	* the callable provided to fill addrUnix object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrUnix or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrUnix.
 	*/
 	template <typename F>
 	auto bind(F _fn) -> decltype(_fn(std::declval<addrUnix &>()), void()) const
@@ -257,24 +265,24 @@ public:
 
 		unix = addr;
 	}
-	// Bind method calls
 
 
-	// Connect method calls
-
-	/** @method connect
+	/**
+	* @method connect
 	* @access public
 	* Connects net::Socket to address _addr:_port if successful else throws
 	* invalid_argument exception.
 	*
 	* @param {char []} _addr Ip address in case of ipv4 or ipv6 domain, and Path
 	* in case of unix domain.
-	* @param {int} _port Port number in case of addrIpv4 or addrIpv6
+	* @param {int} _port Port number in case of addrIPv4 or addrIPv6.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	void connect(const char[], const int = 0, bool * = nullptr);
 
-	/** @method connect
+
+	/**
+	* @method connect
 	* @access public
 	* Connects net::Socket to ipv4 peer if successful else throws runtime_error
 	* exception.
@@ -282,15 +290,14 @@ public:
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIpv4 or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv4.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
 	auto connect(F _fn, bool *_errorNB = nullptr)
-	  -> decltype(_fn(std::declval<addrIpv4 &>()), void()) const
+	  -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
 	{
-		addrIpv4 addr;
+		addrIPv4 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -314,24 +321,25 @@ public:
 		}
 	}
 
-	/** @method connect
+
+	/**
+	* @method connect
 	* @access public
 	* Connects net::Socket to ipv6 peer if successful else throws runtime_error
 	* exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIpv4 object.
+	* Invokes the callable provided to fill addrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIpv6 or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv6.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
 	auto connect(F _fn, bool *_errorNB = nullptr)
-	  -> decltype(_fn(std::declval<addrIpv6 &>()), void()) const
+	  -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
 	{
-		addrIpv6 addr;
+		addrIPv6 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -355,17 +363,18 @@ public:
 		}
 	}
 
-	/** @method connect
+
+	/**
+	* @method connect
 	* @access public
 	* Connects net::Socket to unix socket peer if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIpv4 object.
+	* Invokes the callable provided to fill addrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrUnix or
-	* void.
+	* @param {callable} _fn Some callable that takes arg of type addrUnix.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
@@ -395,9 +404,10 @@ public:
 			throw std::invalid_argument("Address argument invalid");
 		}
 	}
-	// Connect method calls
 
-	/** @method start
+
+	/**
+	* @method start
 	* @access public
 	* Starts the net::Socket in listen mode on given ip address and given port
 	* with given backlog if successful
@@ -412,7 +422,9 @@ public:
 	*/
 	void start(const char[], const int = 0, const int = SOMAXCONN);
 
-	/** @method accept
+
+	/**
+	* @method accept
 	* @access public
 	* Returns Socket object from connected sockets queue if successful else
 	* throws runtime_error exception.
@@ -425,7 +437,8 @@ public:
 	Socket accept(bool * = nullptr) const;
 
 
-	/** @method write
+	/**
+	* @method write
 	* @access public
 	* Writes given string to Socket if successful else throws runtime_error
 	* exception.
@@ -437,7 +450,9 @@ public:
 	*/
 	void write(const std::string &, bool * = nullptr) const;
 
-	/** @method read
+
+	/**
+	* @method read
 	* @access public
 	* Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
@@ -446,14 +461,13 @@ public:
 	*
 	* @param {int} _bufSize Number of bytes to be read using Socket.
 	* @param {bool *} _errorNB To signal error in case of non-blocking read.
-	* @Returns {string} String of _bufSize bytes read using Socket.
+	* @returns {string} String of _bufSize bytes read using Socket.
 	*/
 	std::string read(const int = 1024, bool * = nullptr) const;
 
 
-	// Send method calls
-
-	/** @method send
+	/**
+	* @method send
 	* @access public
 	* Sends given string using Socket if successful else throws runtime_error
 	* exception.
@@ -468,17 +482,18 @@ public:
 	          bool * = nullptr) const;
 
 
-	/** @method send
+	/**
+	* @method send
 	* @access public
 	* Sends given string using Socket if successful else throws runtime_error
 	* exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIpv4 object.
+	* Invokes the callable provided to fill addrIPv4 object.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {callable} _fn Some callable that takes arg of type addrIpv4 or
+	* @param {callable} _fn Some callable that takes arg of type addrIPv4 or
 	* void.
 	* @param {SF::send} _flags Modify default behaviour of send.
 	* @param {bool *} _errorNB To signal error in case of non-blocking send.
@@ -486,9 +501,9 @@ public:
 	template <typename F>
 	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
 	          bool *_errorNB = nullptr) const
-	  -> decltype(_fn(std::declval<addrIpv4 &>()), void()) const
+	  -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
 	{
-		addrIpv4 addr;
+		addrIPv4 addr;
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -499,7 +514,7 @@ public:
 
 		ssize_t sent = -1;
 		if (res == 1) {
-			sent = low_write(::sendto, sockfd, _msg, flags, (sockaddr *) &addr,
+			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
 
@@ -518,27 +533,28 @@ public:
 	}
 
 
-	/** @method send
-   * @access public
-   * Sends given string using Socket if successful else throws runtime_error
-   * exception.
-   * Throws invalid_argument exception in case of non-blocking net::Socket if
-   * _errorNB is missing.
-   * Throws invalid_argument exception if destination address given is invalid.
-   * Invokes the callable provided to fill addrIpv6 object.
-   *
-   * @param {string} _msg String to be sent using Socket.
-   * @param {callable} _fn Some callable that takes arg of type addrIpv6 or
-   * void.
-   * @param {SF::send} _flags Modify default behaviour of send.
-   * @param {bool *} _errorNB To signal error in case of non-blocking send.
-   */
+	/**
+	* @method send
+	* @access public
+	* Sends given string using Socket if successful else throws runtime_error
+	* exception.
+	* Throws invalid_argument exception in case of non-blocking net::Socket if
+	* _errorNB is missing.
+	* Throws invalid_argument exception if destination address given is invalid.
+	* Invokes the callable provided to fill addrIPv6 object.
+	*
+	* @param {string} _msg String to be sent using Socket.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv6 or
+	* void.
+	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {bool *} _errorNB To signal error in case of non-blocking send.
+	*/
 	template <typename F>
 	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
 	          bool *_errorNB = nullptr) const
-	  -> decltype(_fn(std::declval<addrIpv6 &>()), void()) const
+	  -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
 	{
-		addrIpv6 addr;
+		addrIPv6 addr;
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -549,7 +565,7 @@ public:
 
 		ssize_t sent = -1;
 		if (res == 1) {
-			sent = low_write(::sendto, sockfd, _msg, flags, (sockaddr *) &addr,
+			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
 
@@ -568,21 +584,22 @@ public:
 	}
 
 
-	/** @method send
-   * @access public
-   * Sends given string using Socket if successful else throws runtime_error
-   * exception.
-   * Throws invalid_argument exception in case of non-blocking net::Socket if
-   * _errorNB is missing.
-   * Throws invalid_argument exception if destination address given is invalid.
-   * Invokes the callable provided to fill addrUnix object.
-   *
-   * @param {string} _msg String to be sent using Socket.
-   * @param {callable} _fn Some callable that takes arg of type addrUnix or
-   * void.
-   * @param {SF::send} _flags Modify default behaviour of send.
-   * @param {bool *} _errorNB To signal error in case of non-blocking send.
-   */
+	/**
+	* @method send
+	* @access public
+	* Sends given string using Socket if successful else throws runtime_error
+	* exception.
+	* Throws invalid_argument exception in case of non-blocking net::Socket if
+	* _errorNB is missing.
+	* Throws invalid_argument exception if destination address given is invalid.
+	* Invokes the callable provided to fill addrUnix object.
+	*
+	* @param {string} _msg String to be sent using Socket.
+	* @param {callable} _fn Some callable that takes arg of type addrUnix or
+	* void.
+	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {bool *} _errorNB To signal error in case of non-blocking send.
+	*/
 	template <typename F>
 	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
 	          bool *_errorNB = nullptr) const
@@ -599,7 +616,7 @@ public:
 
 		ssize_t sent = -1;
 		if (res == 1) {
-			sent = low_write(::sendto, sockfd, _msg, flags, (sockaddr *) &addr,
+			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
 
@@ -616,101 +633,54 @@ public:
 			}
 		}
 	}
-	// Send method calls
 
 
-	// recv method calls
-
-	/** @method recv
-   * @access public
-   * Reads given number of bytes using Socket if successful else throws
-   * runtime_error exception.
-   * Throws invalid_argument exception in case of non-blocking net::Socket if
-   * _errorNB is missing.
-   *
-   * @param {int} _bufSize Number of bytes to be read using Socket.
-   * @param {SF::recv} _flags Modify default behaviour of recv.
-   * @param {bool *} _errorNB To signal error in case of non-blocking recv.
-   * @returns {string} String of _bufSize bytes read from socket.
+	/**
+	* @method recv
+	* @access public
+	* Reads given number of bytes using Socket if successful else throws
+	* runtime_error exception.
+	* Throws invalid_argument exception in case of non-blocking net::Socket if
+	* _errorNB is missing.
+	*
+	* @param {int} _bufSize Number of bytes to be read using Socket.
+	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
+	* @returns {string} String of _bufSize bytes read from socket.
    */
 	std::string recv(const int = 1024, SF::recv = SF::recv::NONE,
 	                 bool * = nullptr) const;
 
-	/** @method recv
-   * @access public
-   * Reads given number of bytes using Socket if successful else throws
-   * runtime_error exception.
-   * Throws invalid_argument exception in case of non-blocking net::Socket if
-   * _errorNB is missing.
-   * Throws invalid_argument exception if destination address given is invalid.
-   * Invokes the callable provided to fill addrIpv4 object.
-   *
-   * @param {string} _msg String to be sent using Socket.
-   * @param {callable} _fn Some callable that takes arg of type addrIpv4 or
-   * void.
-   * @param {SF::recv} _flags Modify default behaviour of recv.
-   * @param {bool *} _errorNB To signal error in case of non-blocking recv.
-   */
-	template <typename F>
-	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIpv4 &>()), std::string()) const
-	{
-		addrIpv4 addr;
-		std::string str;
-		str.reserve(_bufSize);
 
-		const auto flags = static_cast<int>(_flags);
-		socklen_t length = sizeof(addr);
-
-		const auto recvd = low_read(::recvfrom, sockfd, str, flags,
-		                            (sockaddr *) &addr, &length);
-
-		const auto currErrno = errno;
-		if (recvd == -1) {
-			if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
-				if (_errorNB != nullptr) {
-					*_errorNB = true;
-				} else {
-					throw std::invalid_argument("errorNB argument missing");
-				}
-			} else {
-				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
-			}
-		}
-
-		_fn(addr);
-		return str;
-	}
-
-
-	/** @method recv
+	/**
+	* @method recv
 	* @access public
 	* Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIpv6 object.
+	* Invokes the callable provided to fill addrIPv4 object.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {callable} _fn Some callable that takes arg of type addrIpv6 or
+	* @param {callable} _fn Some callable that takes arg of type addrIPv4 or
 	* void.
 	* @param {SF::recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
 	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIpv6 &>()), std::string()) const
+	  -> decltype(_fn(std::declval<const addrIPv4 &>()), std::string()) const
 	{
-		addrIpv6 addr;
+		addrIPv4 addr;
 		std::string str;
 		str.reserve(_bufSize);
 
 		const auto flags = static_cast<int>(_flags);
 		socklen_t length = sizeof(addr);
 
-		const auto recvd = low_read(::recvfrom, sockfd, str, flags,
-		                            (sockaddr *) &addr, &length);
+		const auto recvd
+		  = low_read(::recvfrom, str, flags, (sockaddr *) &addr, &length);
 
 		const auto currErrno = errno;
 		if (recvd == -1) {
@@ -730,7 +700,56 @@ public:
 	}
 
 
-	/** @method recv
+	/**
+	* @method recv
+	* @access public
+	* Reads given number of bytes using Socket if successful else throws
+	* runtime_error exception.
+	* Throws invalid_argument exception in case of non-blocking net::Socket if
+	* _errorNB is missing.
+	* Throws invalid_argument exception if destination address given is invalid.
+	* Invokes the callable provided to fill addrIPv6 object.
+	*
+	* @param {string} _msg String to be sent using Socket.
+	* @param {callable} _fn Some callable that takes arg of type addrIPv6 or
+	* void.
+	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
+	*/
+	template <typename F>
+	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
+	  -> decltype(_fn(std::declval<const addrIPv6 &>()), std::string()) const
+	{
+		addrIPv6 addr;
+		std::string str;
+		str.reserve(_bufSize);
+
+		const auto flags = static_cast<int>(_flags);
+		socklen_t length = sizeof(addr);
+
+		const auto recvd
+		  = low_read(::recvfrom, str, flags, (sockaddr *) &addr, &length);
+
+		const auto currErrno = errno;
+		if (recvd == -1) {
+			if (currErrno == EAGAIN || currErrno == EWOULDBLOCK) {
+				if (_errorNB != nullptr) {
+					*_errorNB = true;
+				} else {
+					throw std::invalid_argument("errorNB argument missing");
+				}
+			} else {
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+			}
+		}
+
+		_fn(addr);
+		return str;
+	}
+
+
+	/**
+	* @method recv
 	* @access public
 	* Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
@@ -756,8 +775,8 @@ public:
 		const auto flags = static_cast<int>(_flags);
 		socklen_t length = sizeof(addr);
 
-		const auto recvd = low_read(::recvfrom, sockfd, str, flags,
-		                            (sockaddr *) &addr, &length);
+		const auto recvd
+		  = low_read(::recvfrom, str, flags, (sockaddr *) &addr, &length);
 
 		const auto currErrno = errno;
 		if (recvd == -1) {
@@ -775,10 +794,10 @@ public:
 		_fn(addr);
 		return str;
 	}
-	// recv method calls
 
 
-	/** @method setOpt
+	/**
+	* @method setOpt
 	* @access public
 	* Set a socket option from net::SF::opt for Socket using object of type
 	* net::SF::sockOpt.
@@ -789,7 +808,9 @@ public:
 	*/
 	void setOpt(SF::opt, SF::sockOpt) const;
 
-	/** @method getOpt
+
+	/**
+	* @method getOpt
 	* @access public
 	* Get value of some socket option for Socket.
 	*
@@ -797,7 +818,9 @@ public:
 	*/
 	SF::sockOpt getOpt(SF::opt) const;
 
-	/** @method stop
+
+	/**
+	* @method stop
 	* @access public
 	* Shutdown Socket using net::SF::shut.
 	*
@@ -809,11 +832,14 @@ public:
 		shutdown(sockfd, static_cast<int>(_s));
 	}
 
-	/** method close
+
+	/**
+	* method close
 	* @access public
 	* Closes the Socket for terminating connection.
 	*/
 	void close() const noexcept { ::close(sockfd); }
+
 
 	~Socket()
 	{
