@@ -15,10 +15,11 @@ extern "C" {
 #include <errno.h>
 }
 
+
 namespace net {
 
-using addrIpv4  = sockaddr_in;
-using addrIpv6  = sockaddr_in6;
+using addrIPv4  = sockaddr_in;
+using addrIPv6  = sockaddr_in6;
 using addrUnix  = sockaddr_un;
 using addrStore = sockaddr_storage;
 
@@ -149,6 +150,15 @@ namespace SF {
 
 namespace methods {
 
+	/**
+	* @function getErrorMsg
+	* Returns the standard human readable error message corresponding to given
+	* errorNumber.
+	*
+	* @param {int} errorNumber Error number whose string to return.
+	* @returns {string} Standard error string corresponding to given
+	* errorNumber.
+	*/
 	inline std::string getErrorMsg(const int errorNumber)
 	{
 		static std::mutex m;
@@ -158,35 +168,70 @@ namespace methods {
 		return returnString;
 	}
 
-
-	inline int construct(addrIpv4 &addrStruct, const char _addr[],
+	/**
+	* @function construct
+	* Fills the given addrIPv4 structure object with given ip address and port.
+	*
+	* @param {addrIPv4} _addrStruct Ipv4 structure object that needs to be
+	* filled with given ip address and port.
+	* @param {char []} _addr Ip address which needs to be filled in the addrIPv4
+	* structure object.
+	* @param {int} _port Port number which needs to be filled in the addrIPv4
+	* structure object.
+	* @returns {int} 1 if sucessful, 0 if given ip address does not represent a
+	* valid ip address, -1 if some error occurred.
+	*/
+	inline int construct(addrIPv4 &_addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
-		std::memset(&addrStruct, 0, sizeof(addrStruct));
-		addrStruct.sin_family = AF_INET;
-		addrStruct.sin_port   = htons(_port);
+		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
+		_addrStruct.sin_family = AF_INET;
+		_addrStruct.sin_port   = htons(_port);
 
-		return inet_pton(AF_INET, _addr, &addrStruct.sin_addr);
+		return inet_pton(AF_INET, _addr, &_addrStruct.sin_addr);
 	}
 
 
-	inline int construct(addrIpv6 &addrStruct, const char _addr[],
+	/**
+	* @function construct
+	* Fills the given addrIPv6 structure object with given ip address and port.
+	*
+	* @param {addrIPv6} _addrStruct - Ipv6 structure object that needs to be
+	* filled with given ip address and port.
+	* @param {char []} _addr Ip address which needs to be filled in the addrIPv6
+	* structure object.
+	* @param {int} _port Port number which needs to be filled in the addrIPv6
+	* structure object.
+	* @returns {int} 1 if sucessful, 0 if given ip address does not represent a
+	* valid ip address, -1 if some error occurred.
+	*/
+	inline int construct(addrIPv6 &_addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
 		// TODO: replace code with call to getaddrinfo()
-		std::memset(&addrStruct, 0, sizeof(addrStruct));
-		addrStruct.sin6_family = AF_INET6;
-		addrStruct.sin6_port   = htons(_port);
+		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
+		_addrStruct.sin6_family = AF_INET6;
+		_addrStruct.sin6_port   = htons(_port);
 
-		return inet_pton(AF_INET6, _addr, &addrStruct.sin6_addr);
+		return inet_pton(AF_INET6, _addr, &_addrStruct.sin6_addr);
 	}
 
 
-	inline int construct(addrUnix &addrStruct, const char _addr[]) noexcept
+	/**
+	* @function construct
+	* Fills the given addrUnix structure object with given address.
+	*
+	* @param {addrUnix} _addrStruct structure object that needs to be filled
+	* with given path.
+	* @param {char []} _addr Path which needs to be filled in the addrUnix
+	* structure object.
+	* @returns {int} Always returns 1.
+	*/
+	inline int construct(addrUnix &_addrStruct, const char _addr[]) noexcept
 	{
-		std::memset(&addrStruct, 0, sizeof(addrStruct));
-		addrStruct.sun_family = AF_UNIX;
-		std::strncpy(addrStruct.sun_path, _addr, 108);
+		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
+		_addrStruct.sun_family = AF_UNIX;
+		std::strncpy(_addrStruct.sun_path, _addr, 108);
 		return 1;
 	}
 }
