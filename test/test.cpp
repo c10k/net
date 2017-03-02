@@ -37,6 +37,10 @@ TEST(socket, constructor)
 	}
 
 	{
+		EXPECT_NO_THROW(Socket mySocket(SF::domain::UNIX, SF::type::UDP););
+	}
+
+	{
 		// Should throw on any protocol which is not either 0 or 1.
 		EXPECT_ANY_THROW(Socket mySocket(SF::domain::UNIX, SF::type::TCP, 3););
 	}
