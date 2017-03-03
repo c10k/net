@@ -6,7 +6,7 @@ int main()
 {
 	for (int i = 0; i < 255; i++) {
 		std::cout << "i:: " << i;
-		auto res = socket(AF_UNIX, SOCK_DGRAM, 0);
+		auto res = socket(AF_INET, SOCK_SEQPACKET, i);
 		if (res < 0) {
 			std::cout << "  Error in creating socket: " << strerror(errno);
 		}
