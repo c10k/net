@@ -60,6 +60,21 @@ TEST(socket, constructor)
 		EXPECT_NO_THROW(
 		  Socket mySocket(SF::domain::IPv4, SF::type::SEQPACKET););
 	}
+
+	{
+		EXPECT_NO_THROW(Socket s(SF::domain::UNIX, SF::type::SEQPACKET, 0););
+	}
+	{
+		EXPECT_NO_THROW(Socket s(SF::domain::UNIX, SF::type::SEQPACKET, 0););
+	}
+	{
+		// Should throw when run withoud cap_raw capability.
+		EXPECT_ANY_THROW(Socket s(SF::domain::IPv4, SF::type::RAW, 255););
+	}
+	{
+		// Should throw when run withoud cap_raw capability.
+		EXPECT_ANY_THROW(Socket s(SF::domain::IPv6, SF::type::RAW, 255););
+	}
 }
 
 // TEST(socket, constructor_within_loop)
