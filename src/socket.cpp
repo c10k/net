@@ -3,60 +3,69 @@
 
 namespace net {
 
-Socket::Socket(const int _sockfd, SF::domain _domain, SF::type _type,
-               const void *_addr)
-    : sockfd(_sockfd), domain(_domain), type(_type)
+Socket::Socket(const int _sockfd, Domain _domain, Type _type, const void *_addr)
+    : sockfd(_sockfd), sock_domain(_domain), sock_type(_type)
 {
 	std::memset(&store, 0, sizeof(store));
 
-	switch (domain) {
-		case SF::domain::IPv4:
+	void *ptr = &store;
+	auto size = sizeof(store);
+
+	switch (sock_domain) {
+		case Domain::IPv4:
 			ipv4.sin_family = AF_INET;
-			std::memcpy(&ipv4, _addr, sizeof(ipv4));
+
+			ptr  = &ipv4;
+			size = sizeof(ipv4);
 			break;
 
-		case SF::domain::IPv6:
+		case Domain::IPv6:
 			ipv6.sin6_family = AF_INET6;
-			std::memcpy(&ipv6, _addr, sizeof(ipv6));
+
+			ptr  = &ipv6;
+			size = sizeof(ipv6);
 			break;
 
-		case SF::domain::UNIX:
+		case Domain::UNIX:
 			unix.sun_family = AF_UNIX;
-			std::memcpy(&unix, _addr, sizeof(unix));
+
+			ptr  = &unix;
+			size = sizeof(unix);
 			break;
 
-		default: std::memcpy(&store, _addr, sizeof(store)); break;
+		default: store.ss_family = static_cast<int>(sock_domain);
 	}
+
+	std::memcpy(ptr, _addr, size);
 }
 
 
 void Socket::start(const char _addr[], const int _port, const int _q)
 {
 	try {
-		switch (domain) {
-			case SF::domain::IPv4:
-				bind([&](addrIPv4 &s) {
+		switch (sock_domain) {
+			case Domain::IPv4:
+				bind([&](AddrIPv4 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
 
-			case SF::domain::IPv6:
-				bind([&](addrIPv6 &s) {
+			case Domain::IPv6:
+				bind([&](AddrIPv6 &s) {
 					return net::methods::construct(s, _addr, _port);
 				});
 				break;
 
-			case SF::domain::UNIX:
-				bind([&](addrUnix &s) {
+			case Domain::UNIX:
+				bind([&](AddrUnix &s) {
 					return net::methods::construct(s, _addr);
 				});
 				break;
 
-			default:
-				throw std::invalid_argument("Protocol family not implemented");
+			default: throw std::invalid_argument("Socket type not supported");
 		}
 
-		if (type == SF::type::TCP || type == SF::type::SEQPACKET) {
+		if (sock_type == Type::TCP || sock_type == Type::SEQPACKET) {
 			if (listen(sockfd, _q) < 0) {
 				const auto currErrno = errno;
 				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
@@ -71,27 +80,26 @@ void Socket::start(const char _addr[], const int _port, const int _q)
 void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 {
 	try {
-		switch (domain) {
-			case SF::domain::IPv4:
-				connect([&](addrIPv4 &s) {
+		switch (sock_domain) {
+			case Domain::IPv4:
+				connect([&](AddrIPv4 &s) {
 					return net::methods::construct(s, _addr, _port);
 				}, _errorNB);
 				break;
 
-			case SF::domain::IPv6:
-				connect([&](addrIPv6 &s) {
+			case Domain::IPv6:
+				connect([&](AddrIPv6 &s) {
 					return net::methods::construct(s, _addr, _port);
 				}, _errorNB);
 				break;
 
-			case SF::domain::UNIX:
-				connect([&](addrUnix &s) {
+			case Domain::UNIX:
+				connect([&](AddrUnix &s) {
 					return net::methods::construct(s, _addr);
 				}, _errorNB);
 				break;
 
-			default:
-				throw std::invalid_argument("Protocol family not implemented");
+			default: throw std::invalid_argument("Socket type not supported");
 		}
 	} catch (...) {
 		throw;
@@ -102,10 +110,10 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 Socket Socket::accept(bool *_errorNB) const
 {
 	union {
-		addrIPv4 ipv4;
-		addrIPv6 ipv6;
-		addrUnix unix;
-		addrStore store;
+		AddrIPv4 ipv4;
+		AddrIPv6 ipv6;
+		AddrUnix unix;
+		AddrStore store;
 	};
 
 	std::memset(&store, 0, sizeof(store));
@@ -113,22 +121,22 @@ Socket Socket::accept(bool *_errorNB) const
 	socklen_t addrSize = 0;
 	sockaddr *addrPtr  = nullptr;
 
-	switch (domain) {
-		case SF::domain::IPv4:
+	switch (sock_domain) {
+		case Domain::IPv4:
 			ipv4.sin_family = AF_INET;
 			std::memset(&ipv4, 0, sizeof(ipv4));
 			addrSize = sizeof(ipv4);
 			addrPtr  = reinterpret_cast<sockaddr *>(&ipv4);
 			break;
 
-		case SF::domain::IPv6:
+		case Domain::IPv6:
 			ipv6.sin6_family = AF_INET6;
 			std::memset(&ipv6, 0, sizeof(ipv6));
 			addrSize = sizeof(ipv6);
 			addrPtr  = reinterpret_cast<sockaddr *>(&ipv6);
 			break;
 
-		case SF::domain::UNIX:
+		case Domain::UNIX:
 			unix.sun_family = AF_UNIX;
 			std::memset(&unix, 0, sizeof(unix));
 			addrSize = sizeof(unix);
@@ -136,7 +144,7 @@ Socket Socket::accept(bool *_errorNB) const
 			break;
 
 		default:
-			store.ss_family = static_cast<int>(domain);
+			store.ss_family = static_cast<int>(sock_domain);
 			addrSize        = sizeof(store);
 			addrPtr         = reinterpret_cast<sockaddr *>(&store);
 			break;
@@ -157,7 +165,7 @@ Socket Socket::accept(bool *_errorNB) const
 		}
 	}
 
-	return Socket(client, domain, type, addrPtr);
+	return Socket(client, sock_domain, sock_type, addrPtr);
 }
 
 
@@ -180,8 +188,7 @@ void Socket::write(const std::string &_msg, bool *_errorNB) const
 }
 
 
-void Socket::send(const std::string &_msg, SF::send _flags,
-                  bool *_errorNB) const
+void Socket::send(const std::string &_msg, Send _flags, bool *_errorNB) const
 {
 	const auto flags = static_cast<int>(_flags);
 	const auto sent  = low_write(::send, _msg, flags);
@@ -225,8 +232,7 @@ std::string Socket::read(const int _numBytes, bool *_errorNB) const
 }
 
 
-std::string Socket::recv(const int _numBytes, SF::recv _flags,
-                         bool *_errorNB) const
+std::string Socket::recv(const int _numBytes, Recv _flags, bool *_errorNB) const
 {
 	std::string str;
 	str.reserve(_numBytes);
@@ -251,7 +257,7 @@ std::string Socket::recv(const int _numBytes, SF::recv _flags,
 }
 
 
-void Socket::setOpt(SF::opt _opType, SF::sockOpt _opValue) const
+void Socket::setOpt(Opt _opType, SockOpt _opValue) const
 {
 	enum type {
 		TIME   = _opValue.TIME,
@@ -265,7 +271,7 @@ void Socket::setOpt(SF::opt _opType, SF::sockOpt _opValue) const
 
 	switch (_opType) {
 
-		case SF::opt::LINGER:
+		case Opt::LINGER:
 			if (_opValue.getType() != type::LINGER) {
 				throw std::invalid_argument("Invalid socket option");
 			}
@@ -273,8 +279,8 @@ void Socket::setOpt(SF::opt _opType, SF::sockOpt _opValue) const
 			len = sizeof(_opValue.l);
 			break;
 
-		case SF::opt::RCVTIMEO:
-		case SF::opt::SNDTIMEO:
+		case Opt::RCVTIMEO:
+		case Opt::SNDTIMEO:
 			if (_opValue.getType() != type::TIME) {
 				throw std::invalid_argument("Invalid socket option");
 			}
@@ -299,22 +305,22 @@ void Socket::setOpt(SF::opt _opType, SF::sockOpt _opValue) const
 }
 
 
-SF::sockOpt Socket::getOpt(SF::opt _opType) const
+SockOpt Socket::getOpt(Opt _opType) const
 {
-	SF::sockOpt opt;
+	SockOpt opt(0);
 	void *ptr     = nullptr;
 	socklen_t len = 0;
 
 	switch (_opType) {
 
-		case SF::opt::LINGER:
+		case Opt::LINGER:
 			opt.setLinger(false, 0);
 			ptr = (void *) &opt.l;
 			len = sizeof(opt.l);
 			break;
 
-		case SF::opt::RCVTIMEO:
-		case SF::opt::SNDTIMEO:
+		case Opt::RCVTIMEO:
+		case Opt::SNDTIMEO:
 			opt.setTime(0, 0);
 			ptr = (void *) &opt.t;
 			len = sizeof(opt.t);

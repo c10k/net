@@ -1,170 +1,177 @@
 #include "socket.hpp"
-#include <iostream>
 #include <gtest/gtest.h>
 
 using namespace net;
 
-TEST(socket, options)
+TEST(socketOptions, Broadcast)
 {
-	{
-		Socket s(SF::domain::IPv4, SF::type::UDP);
-		SF::sockOpt s1;
-		s1.setValue(1);
-		int optval;
-		socklen_t optlen = sizeof(optval);
-		// EXPECT_EQ(1,s1.getValue());
-		s.setOpt(SF::opt::BROADCAST, s1);
-		EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_BROADCAST,
-		                        &optval, &optlen));
-		EXPECT_EQ(1, optval);
-		optval = 0;
+	Socket s4(Domain::IPv4, Type::UDP);
+	Socket s6(Domain::IPv4, Type::UDP);
 
-		EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_BROADCAST,
-		                        &optval, optlen));
-		SF::sockOpt s2;
-		s2 = s.getOpt(SF::opt::BROADCAST);
-		EXPECT_EQ(0, s2.getValue());
-	}
+	SockOpt option(1);
+	int optval;
+	socklen_t optlen = sizeof(optval);
 
-	std::cout << " test 1 completed\n";
-	{
-		Socket s(SF::domain::IPv4, SF::type::TCP);
-		SF::sockOpt s1;
-		linger lin;
-		socklen_t len = sizeof(lin);
-		s1.setLinger(true, 30);
-		s.setOpt(SF::opt::LINGER, s1);
-		EXPECT_EQ(0,
-		          getsockopt(s.getSocket(), SOL_SOCKET, SO_LINGER, &lin, &len));
-		linger test;
-		test.l_onoff  = true;
-		test.l_linger = 30;
-		EXPECT_EQ(test.l_onoff, lin.l_onoff);
-		EXPECT_EQ(test.l_linger, lin.l_linger);
-	}
+	ASSERT_EQ(1, option.getValue());
 
-	std::cout << " test 2 completed\n";
-	{
-		Socket s(SF::domain::IPv4, SF::type::TCP);
-		SF::sockOpt s1;
-		linger lin;
-		socklen_t len = sizeof(lin);
-		lin.l_onoff   = true;
-		lin.l_linger  = 20;
-		EXPECT_EQ(0,
-		          setsockopt(s.getSocket(), SOL_SOCKET, SO_LINGER, &lin, len));
-		linger test;
-		test.l_onoff  = true;
-		test.l_linger = 20;
-		s1            = s.getOpt(SF::opt::LINGER);
-		EXPECT_EQ(
-		  std::make_pair(static_cast<bool>(test.l_onoff), test.l_linger),
-		  s1.getLinger());
-	}
+	s4.setOpt(Opt::BROADCAST, option);
+	s6.setOpt(Opt::BROADCAST, option);
 
-	std::cout << " test 3 completed\n";
-	// {
-	// 	Socket s(SF::domain::IPv4, SF::type::TCP);
-	// 	SF::sockOpt s1;
-	// 	s1.setValue(1);
-	// 	int optval;
-	// 	socklen_t optlen = sizeof(optval);
-	// 	// EXPECT_EQ(1,s1.getValue());
-	// 	s.setOpt(SF::opt::DEBUG, s1);
-	// 	EXPECT_EQ(
-	// 	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_DEBUG, &optval, &optlen));
-	// 	EXPECT_EQ(1, optval);
-	// 	optval = 0;
+	ASSERT_EQ(0, getsockopt(s4.getSocket(), SOL_SOCKET, SO_BROADCAST, &optval,
+	                        &optlen));
+	ASSERT_EQ(1, optval);
 
-	// 	EXPECT_EQ(
-	// 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_DEBUG, &optval, optlen));
-	// 	SF::sockOpt s2;
-	// 	s2 = s.getOpt(SF::opt::DEBUG);
-	// 	EXPECT_EQ(0, s2.getValue());
-	// }
+	ASSERT_EQ(0, getsockopt(s6.getSocket(), SOL_SOCKET, SO_BROADCAST, &optval,
+	                        &optlen));
+	ASSERT_EQ(1, optval);
 
-	// std::cout << " test 4 completed\n";
-	// {
-	// 	Socket s(SF::domain::IPv4, SF::type::UDP);
-	// 	SF::sockOpt s1;
-	// 	s1.setValue(1);
-	// 	int optval;
-	// 	socklen_t optlen = sizeof(optval);
-	// 	// EXPECT_EQ(1,s1.getValue());
-	// 	s.setOpt(SF::opt::DONTROUTE, s1);
-	// 	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE,
-	// 	                        &optval, &optlen));
-	// 	EXPECT_EQ(1, optval);
-	// 	optval = 0;
 
-	// 	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE,
-	// 	                        &optval, optlen));
-	// 	SF::sockOpt s2;
-	// 	s2 = s.getOpt(SF::opt::DONTROUTE);
-	// 	EXPECT_EQ(0, s2.getValue());
-	// }
+	optval = 0;
+	ASSERT_EQ(
+	  0, setsockopt(s4.getSocket(), SOL_SOCKET, SO_BROADCAST, &optval, optlen));
+	ASSERT_EQ(
+	  0, setsockopt(s6.getSocket(), SOL_SOCKET, SO_BROADCAST, &optval, optlen));
 
-	// std::cout << " test 5 completed\n";
-	// {
-	// 	Socket s(SF::domain::IPv4, SF::type::UDP);
-	// 	SF::sockOpt s1;
-	// 	s1.setValue(1);
-	// 	int optval;
-	// 	socklen_t optlen = sizeof(optval);
-	// 	// EXPECT_EQ(1,s1.getValue());
-	// 	s.setOpt(SF::opt::KEEPALIVE, s1);
-	// 	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE,
-	// 	                        &optval, &optlen));
-	// 	EXPECT_EQ(1, optval);
-	// 	optval = 0;
+	auto opt4 = s4.getOpt(Opt::BROADCAST);
+	auto opt6 = s6.getOpt(Opt::BROADCAST);
 
-	// 	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE,
-	// 	                        &optval, optlen));
-	// 	SF::sockOpt s2;
-	// 	s2 = s.getOpt(SF::opt::KEEPALIVE);
-	// 	EXPECT_EQ(0, s2.getValue());
-	// }
+	ASSERT_EQ(0, opt4.getValue());
+	ASSERT_EQ(0, opt6.getValue());
 
-	// std::cout << " test 6 completed\n";
-	// {
-	// 	Socket s(SF::domain::IPv4, SF::type::UDP);
-	// 	SF::sockOpt s1;
-	// 	s1.setValue(1);
-	// 	int optval;
-	// 	socklen_t optlen = sizeof(optval);
-	// 	// EXPECT_EQ(1,s1.getValue());
-	// 	s.setOpt(SF::opt::OOBINLINE, s1);
-	// 	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE,
-	// 	                        &optval, &optlen));
-	// 	EXPECT_EQ(1, optval);
-	// 	optval = 0;
+	Socket tcpSocket(Domain::IPv4, Type::TCP);
+	SockOpt badOpt(1);
+	ASSERT_EQ(1, badOpt.getValue());
 
-	// 	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE,
-	// 	                        &optval, optlen));
-	// 	SF::sockOpt s2;
-	// 	s2 = s.getOpt(SF::opt::OOBINLINE);
-	// 	EXPECT_EQ(0, s2.getValue());
-	// }
+	ASSERT_ANY_THROW(tcpSocket.setOpt(Opt::BROADCAST, badOpt));
+}
 
-	// std::cout << " test 7 completed\n";
-	// {
-	// 	Socket s(SF::domain::IPv4, SF::type::TCP);
-	// 	SF::sockOpt s1;
-	// 	s1.setValue(10);
-	// 	int optval;
-	// 	socklen_t optlen = sizeof(optval);
-	// 	// EXPECT_EQ(1,s1.getValue());
-	// 	s.setOpt(SF::opt::RCVLOWAT, s1);
-	// 	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval,
-	// 	                        &optlen));
-	// 	EXPECT_EQ(10, optval);
-	// 	optval = 10;
 
-	// 	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval,
-	// 	                        optlen));
-	// 	SF::sockOpt s2;
-	// 	s2 = s.getOpt(SF::opt::RCVLOWAT);
-	// 	EXPECT_EQ(10, s2.getValue());
-	// }
-	// std::cout << " test 8 completed\n";
+TEST(socketOptions, Linger)
+{
+	Socket s(Domain::IPv4, Type::TCP);
+
+	linger lin;
+	socklen_t len = sizeof(lin);
+
+	SockOpt opt(true, 30);
+
+	s.setOpt(Opt::LINGER, opt);
+	ASSERT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_LINGER, &lin, &len));
+
+	linger test;
+	test.l_onoff  = 1;
+	test.l_linger = 30;
+
+	ASSERT_EQ(test.l_onoff, lin.l_onoff);
+	ASSERT_EQ(test.l_linger, lin.l_linger);
+}
+
+
+TEST(socketOptions, Debug)
+{
+	Socket s(Domain::IPv4, Type::UDP);
+
+	int optval;
+	socklen_t optlen = sizeof(optval);
+
+	SockOpt opt(1);
+	ASSERT_EQ(1, opt.getValue());
+
+	s.setOpt(Opt::DEBUG, opt);
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_DEBUG, &optval, &optlen));
+	ASSERT_EQ(1, optval);
+
+	optval = 0;
+	ASSERT_EQ(0,
+	          setsockopt(s.getSocket(), SOL_SOCKET, SO_DEBUG, &optval, optlen));
+
+	auto s2 = s.getOpt(Opt::DEBUG);
+	ASSERT_EQ(0, s2.getValue());
+}
+
+
+TEST(socketOptions, DontRoute)
+{
+	Socket s(Domain::IPv4, Type::UDP);
+
+	int optval;
+	socklen_t optlen = sizeof(optval);
+
+	SockOpt opt(1);
+	s.setOpt(Opt::DONTROUTE, opt);
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE, &optval, &optlen));
+	ASSERT_EQ(1, optval);
+	optval = 0;
+
+	ASSERT_EQ(
+	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE, &optval, optlen));
+	auto opt2 = s.getOpt(Opt::DONTROUTE);
+	ASSERT_EQ(0, opt2.getValue());
+}
+
+
+TEST(socketOptions, KeepAlive)
+{
+	Socket s(Domain::IPv4, Type::UDP);
+	SockOpt opt(1);
+
+	ASSERT_EQ(1, opt.getValue());
+	s.setOpt(Opt::KEEPALIVE, opt);
+
+	int optval;
+	socklen_t optlen = sizeof(optval);
+
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE, &optval, &optlen));
+	ASSERT_EQ(1, optval);
+	optval = 0;
+
+	ASSERT_EQ(
+	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen));
+	auto opt2 = s.getOpt(Opt::KEEPALIVE);
+	ASSERT_EQ(0, opt2.getValue());
+}
+
+
+TEST(socketOptions, OOBInline)
+{
+	Socket s(Domain::IPv4, Type::UDP);
+	SockOpt opt(1);
+	ASSERT_EQ(1, opt.getValue());
+	s.setOpt(Opt::OOBINLINE, opt);
+	int optval;
+	socklen_t optlen = sizeof(optval);
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE, &optval, &optlen));
+	ASSERT_EQ(1, optval);
+	optval = 0;
+
+	ASSERT_EQ(
+	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE, &optval, optlen));
+
+	auto opt2 = s.getOpt(Opt::OOBINLINE);
+	ASSERT_EQ(0, opt2.getValue());
+}
+
+
+TEST(socketOptions, RCVLOWAT)
+{
+	Socket s(Domain::IPv4, Type::TCP);
+	SockOpt opt(100);
+	int optval;
+	socklen_t optlen = sizeof(optval);
+	ASSERT_EQ(100, opt.getValue());
+	s.setOpt(Opt::RCVLOWAT, opt);
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval, &optlen));
+	ASSERT_EQ(100, optval);
+	optval = 10;
+
+	ASSERT_EQ(
+	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval, optlen));
+
+	auto opt2 = s.getOpt(Opt::RCVLOWAT);
+	ASSERT_EQ(10, opt2.getValue());
 }

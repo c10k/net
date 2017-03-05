@@ -6,7 +6,7 @@ using namespace net;
 int main()
 {
 	try {
-		Socket s(SF::domain::IPv4, SF::type::TCP);
+		Socket s(Domain::IPv4, Type::TCP);
 		s.start("0.0.0.0", 24000);
 
 		while (1) {

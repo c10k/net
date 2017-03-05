@@ -4,6 +4,7 @@
 #include <mutex>
 #include <cstring>
 #include <utility>
+#include "socket_options.hpp"
 
 extern "C" {
 #include <sys/socket.h>
@@ -18,133 +19,60 @@ extern "C" {
 
 namespace net {
 
-using addrIPv4  = sockaddr_in;
-using addrIPv6  = sockaddr_in6;
-using addrUnix  = sockaddr_un;
-using addrStore = sockaddr_storage;
+using AddrIPv4  = sockaddr_in;
+using AddrIPv6  = sockaddr_in6;
+using AddrUnix  = sockaddr_un;
+using AddrStore = sockaddr_storage;
 
-namespace SF {
-
-	enum class domain {
-		UNIX      = AF_UNIX,
-		LOCAL     = AF_UNIX,
-		IPv4      = AF_INET,
-		IPv6      = AF_INET6,
-		IPX       = AF_IPX,
-		NETLINK   = AF_NETLINK,
-		X25       = AF_X25,
-		AX25      = AF_AX25,
-		ATMPVC    = AF_ATMPVC,
-		APPLETALK = AF_APPLETALK,
-		PACKET    = AF_PACKET,
-		ALG       = AF_ALG
-	};
+enum class Domain {
+	UNIX      = AF_UNIX,
+	LOCAL     = AF_UNIX,
+	IPv4      = AF_INET,
+	IPv6      = AF_INET6,
+	IPX       = AF_IPX,
+	NETLINK   = AF_NETLINK,
+	X25       = AF_X25,
+	AX25      = AF_AX25,
+	ATMPVC    = AF_ATMPVC,
+	APPLETALK = AF_APPLETALK,
+	PACKET    = AF_PACKET,
+	ALG       = AF_ALG
+};
 
 
-	enum class type {
-		TCP       = SOCK_STREAM,
-		UDP       = SOCK_DGRAM,
-		SEQPACKET = SOCK_SEQPACKET,
-		RAW       = SOCK_RAW,
-		RDM       = SOCK_RDM,
-		NONBLOCK  = SOCK_NONBLOCK,
-		CLOEXEC   = SOCK_CLOEXEC
-	};
+enum class Type {
+	TCP       = SOCK_STREAM,
+	UDP       = SOCK_DGRAM,
+	SEQPACKET = SOCK_SEQPACKET,
+	RAW       = SOCK_RAW,
+	RDM       = SOCK_RDM,
+	NONBLOCK  = SOCK_NONBLOCK,
+	CLOEXEC   = SOCK_CLOEXEC
+};
 
-	enum class shut { READ = SHUT_RD, WRITE = SHUT_WR, READWRITE = SHUT_RDWR };
-
-
-	enum class recv {
-		NONE    = 0,
-		PEEK    = MSG_PEEK,
-		OOB     = MSG_OOB,
-		WAITALL = MSG_WAITALL
-	};
-	inline constexpr recv operator|(recv a, recv b) noexcept
-	{
-		return static_cast<recv>(static_cast<int>(a) | static_cast<int>(b));
-	}
-
-	enum class send {
-		NONE     = 0,
-		EOR      = MSG_EOR,
-		OOB      = MSG_OOB,
-		NOSIGNAL = MSG_NOSIGNAL
-	};
-	inline constexpr send operator|(send a, send b) noexcept
-	{
-		return static_cast<send>(static_cast<int>(a) | static_cast<int>(b));
-	}
+enum class Shut { READ = SHUT_RD, WRITE = SHUT_WR, READWRITE = SHUT_RDWR };
 
 
-	enum class opt {
-		BROADCAST = SO_BROADCAST,
-		DEBUG     = SO_DEBUG,
-		DONTROUTE = SO_DONTROUTE,
-		ERROR     = SO_ERROR,
-		KEEPALIVE = SO_KEEPALIVE,
-		LINGER    = SO_LINGER,
-		OOBINLINE = SO_OOBINLINE,
-		RCVBUF    = SO_RCVBUF,
-		SNDBUF    = SO_SNDBUF,
-		RCVLOWAT  = SO_RCVLOWAT,
-		SNDLOWAT  = SO_SNDLOWAT,
-		RCVTIMEO  = SO_RCVTIMEO,
-		SNDTIMEO  = SO_SNDTIMEO,
-		REUSEADDR = SO_REUSEADDR,
-		REUSEPORT = SO_REUSEPORT,
-		TYPE      = SO_TYPE,
-#ifdef SO_USELOOPBACK
-		USELOOPBACK = SO_USELOOPBACK
-#endif
-	};
+enum class Recv {
+	NONE    = 0,
+	PEEK    = MSG_PEEK,
+	OOB     = MSG_OOB,
+	WAITALL = MSG_WAITALL
+};
+inline constexpr Recv operator|(Recv a, Recv b) noexcept
+{
+	return static_cast<Recv>(static_cast<int>(a) | static_cast<int>(b));
+}
 
-	struct sockOpt {
-		union {
-			timeval t;
-			linger l;
-			int i;
-		};
-		enum { TIME, LINGER, INT } type;
-		sockOpt()
-		{
-			i    = 0;
-			type = INT;
-		}
-		auto getType() const noexcept { return type; }
-		void setTime(const decltype(t.tv_sec) seconds,
-		             const decltype(t.tv_usec) microseconds)
-		{
-			t.tv_sec  = seconds;
-			t.tv_usec = microseconds;
-			type      = TIME;
-		}
-		auto getTime() const
-		{
-			return (type == TIME)
-			  ? std::make_pair(t.tv_sec, t.tv_usec)
-			  : std::make_pair(static_cast<decltype(t.tv_sec)>(0),
-			                   static_cast<decltype(t.tv_usec)>(0));
-		}
-		void setLinger(const bool _on, const int _linger)
-		{
-			l.l_onoff  = _on ? 1 : 0;
-			l.l_linger = _linger;
-			type       = LINGER;
-		}
-		auto getLinger() const
-		{
-			return (type == LINGER)
-			  ? std::make_pair(static_cast<bool>(l.l_onoff), l.l_linger)
-			  : std::make_pair(false, 0);
-		}
-		void setValue(const int _n)
-		{
-			i    = _n;
-			type = INT;
-		}
-		auto getValue() const noexcept { return (type == INT) ? i : 0; }
-	};
+enum class Send {
+	NONE     = 0,
+	EOR      = MSG_EOR,
+	OOB      = MSG_OOB,
+	NOSIGNAL = MSG_NOSIGNAL
+};
+inline constexpr Send operator|(Send a, Send b) noexcept
+{
+	return static_cast<Send>(static_cast<int>(a) | static_cast<int>(b));
 }
 
 
@@ -170,18 +98,18 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given addrIPv4 structure object with given ip address and port.
+	* Fills the given AddrIPv4 structure object with given ip address and port.
 	*
-	* @param {addrIPv4} _addrStruct Ipv4 structure object that needs to be
+	* @param {AddrIPv4} _addrStruct Ipv4 structure object that needs to be
 	* filled with given ip address and port.
-	* @param {char []} _addr Ip address which needs to be filled in the addrIPv4
+	* @param {char []} _addr Ip address which needs to be filled in the AddrIPv4
 	* structure object.
-	* @param {int} _port Port number which needs to be filled in the addrIPv4
+	* @param {int} _port Port number which needs to be filled in the AddrIPv4
 	* structure object.
 	* @returns {int} 1 if sucessful, 0 if given ip address does not represent a
 	* valid ip address, -1 if some error occurred.
 	*/
-	inline int construct(addrIPv4 &_addrStruct, const char _addr[],
+	inline int construct(AddrIPv4 &_addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
 		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
@@ -194,18 +122,18 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given addrIPv6 structure object with given ip address and port.
+	* Fills the given AddrIPv6 structure object with given ip address and port.
 	*
-	* @param {addrIPv6} _addrStruct - Ipv6 structure object that needs to be
+	* @param {AddrIPv6} _addrStruct - Ipv6 structure object that needs to be
 	* filled with given ip address and port.
-	* @param {char []} _addr Ip address which needs to be filled in the addrIPv6
+	* @param {char []} _addr Ip address which needs to be filled in the AddrIPv6
 	* structure object.
-	* @param {int} _port Port number which needs to be filled in the addrIPv6
+	* @param {int} _port Port number which needs to be filled in the AddrIPv6
 	* structure object.
 	* @returns {int} 1 if sucessful, 0 if given ip address does not represent a
 	* valid ip address, -1 if some error occurred.
 	*/
-	inline int construct(addrIPv6 &_addrStruct, const char _addr[],
+	inline int construct(AddrIPv6 &_addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
 		// TODO: replace code with call to getaddrinfo()
@@ -219,15 +147,15 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given addrUnix structure object with given address.
+	* Fills the given AddrUnix structure object with given address.
 	*
-	* @param {addrUnix} _addrStruct structure object that needs to be filled
+	* @param {AddrUnix} _addrStruct structure object that needs to be filled
 	* with given path.
-	* @param {char []} _addr Path which needs to be filled in the addrUnix
+	* @param {char []} _addr Path which needs to be filled in the AddrUnix
 	* structure object.
 	* @returns {int} Always returns 1.
 	*/
-	inline int construct(addrUnix &_addrStruct, const char _addr[]) noexcept
+	inline int construct(AddrUnix &_addrStruct, const char _addr[]) noexcept
 	{
 		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
 		_addrStruct.sun_family = AF_UNIX;

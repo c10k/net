@@ -7,7 +7,7 @@ int main()
 {
 	try {
 
-		Socket s(SF::domain::IPv4, SF::type::TCP);
+		Socket s(Domain::IPv4, Type::TCP);
 		s.connect("0.0.0.0", 24000);
 		s.send("Hello World!");
 

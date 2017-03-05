@@ -18,14 +18,14 @@ namespace net {
 class Socket final {
 private:
 	union {
-		addrStore store;
-		addrIPv4 ipv4;
-		addrIPv6 ipv6;
-		addrUnix unix;
+		AddrStore store;
+		AddrIPv4 ipv4;
+		AddrIPv6 ipv6;
+		AddrUnix unix;
 	};
 	int sockfd;
-	SF::domain domain;
-	SF::type type;
+	Domain sock_domain;
+	Type sock_type;
 
 
 	/**
@@ -44,7 +44,8 @@ private:
 	template <typename Fn, typename... Args>
 	auto low_write(Fn &&_fn, const std::string &_msg, Args &&... args) const
 	{
-		auto written = 0, count = 0;
+		ssize_t written              = 0;
+		std::string::size_type count = 0;
 		do {
 			written = std::forward<Fn>(_fn)(sockfd, _msg.c_str() + count,
 			                                _msg.length() - count,
@@ -77,7 +78,7 @@ private:
 
 		const auto recvd = std::forward<Fn>(_fn)(sockfd, buffer.get(), bufSize,
 		                                         std::forward<Args>(args)...);
-		_str.append(buffer.get(), (recvd > 0) ? recvd: 0);
+		_str.append(buffer.get(), (recvd > 0) ? recvd : 0);
 		return recvd;
 	}
 
@@ -86,11 +87,12 @@ private:
 	* @construct Socket
 	* @access private
 	* @param {int} _sockfd Descriptor representing a socket.
-	* @param {SF::domain} _domain Socket domain.
+	* @param {Domain} _domain Socket domain.
+	* @param {Type} _domain Socket type.
 	* @param {void *} _addr Pointer to initialize appropriate member of Union of
 	* net::Socket.
 	*/
-	Socket(const int, SF::domain, SF::type, const void *);
+	Socket(const int, Domain, Type, const void *);
 
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
@@ -100,15 +102,15 @@ public:
 	/**
 	* @construct net::Socket
 	* @access public
-	* @param {SF::domain} _domain Socket domain.
-	* @param {SF::type} _type Socket type.
+	* @param {domain} _domain Socket domain.
+	* @param {type} _type Socket type.
 	* @param {int} _proto Socket protocol.
 	*/
-	Socket(SF::domain _domain, SF::type _type, const int _proto = 0)
-	    : domain(_domain), type(_type)
+	Socket(Domain _domain, Type _type, const int _proto = 0)
+	    : sock_domain(_domain), sock_type(_type)
 	{
-		const auto d = static_cast<int>(domain);
-		const auto t = static_cast<int>(type);
+		const auto d = static_cast<int>(sock_domain);
+		const auto t = static_cast<int>(sock_type);
 
 		sockfd = socket(d, t, _proto);
 		if (sockfd < 0) {
@@ -116,10 +118,10 @@ public:
 			throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 		}
 
-		switch (domain) {
-			case SF::domain::IPv4: ipv4.sin_family  = AF_INET; break;
-			case SF::domain::IPv6: ipv6.sin6_family = AF_INET6; break;
-			case SF::domain::UNIX: unix.sun_family  = AF_UNIX; break;
+		switch (sock_domain) {
+			case Domain::IPv4: ipv4.sin_family  = AF_INET; break;
+			case Domain::IPv6: ipv6.sin6_family = AF_INET6; break;
+			case Domain::UNIX: unix.sun_family  = AF_UNIX; break;
 
 			default: store.ss_family = d;
 		}
@@ -133,14 +135,14 @@ public:
 	*/
 	Socket(Socket &&s)
 	{
-		sockfd = s.sockfd;
-		domain = s.domain;
-		type   = s.type;
+		sockfd      = s.sockfd;
+		sock_domain = s.sock_domain;
+		sock_type   = s.sock_type;
 
-		switch (s.domain) {
-			case SF::domain::IPv4: ipv4 = s.ipv4; break;
-			case SF::domain::IPv6: ipv6 = s.ipv6; break;
-			case SF::domain::UNIX: unix = s.unix; break;
+		switch (s.sock_domain) {
+			case Domain::IPv4: ipv4 = s.ipv4; break;
+			case Domain::IPv6: ipv6 = s.ipv6; break;
+			case Domain::UNIX: unix = s.unix; break;
 
 			default: store = s.store;
 		}
@@ -163,14 +165,14 @@ public:
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill addrIPv4 object.
+	* the callable provided to fill AddrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIPv4.
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv4.
 	*/
 	template <typename F>
-	auto bind(F _fn) -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
+	auto bind(F _fn) -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
-		addrIPv4 addr;
+		AddrIPv4 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -195,14 +197,14 @@ public:
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill addrIPv6 object.
+	* the callable provided to fill AddrIPv6 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIPv6.
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv6.
 	*/
 	template <typename F>
-	auto bind(F _fn) -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
+	auto bind(F _fn) -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
-		addrIPv6 addr;
+		AddrIPv6 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -227,14 +229,14 @@ public:
 	* Binds net::Socket to local address if successful else if Address argument
 	* is invalid then throws invalid_argument exception
 	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill addrUnix object.
+	* the callable provided to fill AddrUnix object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrUnix.
+	* @param {callable} _fn Some callable that takes arg of type AddrUnix.
 	*/
 	template <typename F>
-	auto bind(F _fn) -> decltype(_fn(std::declval<addrUnix &>()), void()) const
+	auto bind(F _fn) -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
-		addrUnix addr;
+		AddrUnix addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -261,7 +263,7 @@ public:
 	*
 	* @param {char []} _addr Ip address in case of ipv4 or ipv6 domain, and Path
 	* in case of unix domain.
-	* @param {int} _port Port number in case of addrIPv4 or addrIPv6.
+	* @param {int} _port Port number in case of AddrIPv4 or AddrIPv6.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	void connect(const char[], const int = 0, bool * = nullptr);
@@ -276,14 +278,14 @@ public:
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIPv4.
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv4.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
 	auto connect(F _fn, bool *_errorNB = nullptr)
-	  -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
-		addrIPv4 addr;
+		AddrIPv4 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -316,16 +318,16 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv4 object.
+	* Invokes the callable provided to fill AddrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrIPv6.
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv6.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
 	auto connect(F _fn, bool *_errorNB = nullptr)
-	  -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
-		addrIPv6 addr;
+		AddrIPv6 addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -358,16 +360,16 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv4 object.
+	* Invokes the callable provided to fill AddrIPv4 object.
 	*
-	* @param {callable} _fn Some callable that takes arg of type addrUnix.
+	* @param {callable} _fn Some callable that takes arg of type AddrUnix.
 	* @param {bool *} _errorNB To signal error in case of non-blocking connect.
 	*/
 	template <typename F>
 	auto connect(F _fn, bool *_errorNB = nullptr)
-	  -> decltype(_fn(std::declval<addrUnix &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
-		addrUnix addr;
+		AddrUnix addr;
 
 		auto res = _fn(addr);
 		if (res == 1) {
@@ -461,11 +463,10 @@ public:
 	* _errorNB is missing.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {send} _flags Modify default behaviour of send.
 	* @param {bool *} _errorNB To signal error in case of non-blocking send.
 	*/
-	void send(const std::string &, SF::send = SF::send::NONE,
-	          bool * = nullptr) const;
+	void send(const std::string &, Send = Send::NONE, bool * = nullptr) const;
 
 
 	/**
@@ -476,20 +477,20 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv4 object.
+	* Invokes the callable provided to fill AddrIPv4 object.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {callable} _fn Some callable that takes arg of type addrIPv4 or
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv4 or
 	* void.
-	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {send} _flags Modify default behaviour of send.
 	* @param {bool *} _errorNB To signal error in case of non-blocking send.
 	*/
 	template <typename F>
-	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
+	auto send(const std::string &_msg, F _fn, Send _flags = Send::NONE,
 	          bool *_errorNB = nullptr) const
-	  -> decltype(_fn(std::declval<addrIPv4 &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
-		addrIPv4 addr;
+		AddrIPv4 addr;
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -527,20 +528,20 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv6 object.
+	* Invokes the callable provided to fill AddrIPv6 object.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {callable} _fn Some callable that takes arg of type addrIPv6 or
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv6 or
 	* void.
-	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {send} _flags Modify default behaviour of send.
 	* @param {bool *} _errorNB To signal error in case of non-blocking send.
 	*/
 	template <typename F>
-	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
+	auto send(const std::string &_msg, F _fn, Send _flags = Send::NONE,
 	          bool *_errorNB = nullptr) const
-	  -> decltype(_fn(std::declval<addrIPv6 &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
-		addrIPv6 addr;
+		AddrIPv6 addr;
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -578,20 +579,20 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrUnix object.
+	* Invokes the callable provided to fill AddrUnix object.
 	*
 	* @param {string} _msg String to be sent using Socket.
-	* @param {callable} _fn Some callable that takes arg of type addrUnix or
+	* @param {callable} _fn Some callable that takes arg of type AddrUnix or
 	* void.
-	* @param {SF::send} _flags Modify default behaviour of send.
+	* @param {send} _flags Modify default behaviour of send.
 	* @param {bool *} _errorNB To signal error in case of non-blocking send.
 	*/
 	template <typename F>
-	auto send(const std::string &_msg, F _fn, SF::send _flags = SF::send::NONE,
+	auto send(const std::string &_msg, F _fn, Send _flags = Send::NONE,
 	          bool *_errorNB = nullptr) const
-	  -> decltype(_fn(std::declval<addrUnix &>()), void()) const
+	  -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
-		addrUnix addr;
+		AddrUnix addr;
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -630,12 +631,11 @@ public:
 	* _errorNB is missing.
 	*
 	* @param {int} _bufSize Number of bytes to be read using Socket.
-	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	* @returns {string} String of _bufSize bytes read from socket.
    */
-	std::string recv(const int, SF::recv = SF::recv::NONE,
-	                 bool * = nullptr) const;
+	std::string recv(const int, Recv = Recv::NONE, bool * = nullptr) const;
 
 
 	/**
@@ -646,19 +646,19 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv4 object.
+	* Invokes the callable provided to fill AddrIPv4 object.
 	*
 	* @param {int} _numBytes Number of bytes to read.
-	* @param {callable} _fn Some callable that takes arg of type addrIPv4 or
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv4 or
 	* void.
-	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIPv4 &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
+	  -> decltype(_fn(std::declval<const AddrIPv4 &>()), std::string()) const
 	{
-		addrIPv4 addr;
+		AddrIPv4 addr;
 		std::string str;
 		str.reserve(_numBytes);
 
@@ -694,19 +694,19 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrIPv6 object.
+	* Invokes the callable provided to fill AddrIPv6 object.
 	*
 	* @param {int} _numBytes Number of bytes to read.
-	* @param {callable} _fn Some callable that takes arg of type addrIPv6 or
+	* @param {callable} _fn Some callable that takes arg of type AddrIPv6 or
 	* void.
-	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrIPv6 &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
+	  -> decltype(_fn(std::declval<const AddrIPv6 &>()), std::string()) const
 	{
-		addrIPv6 addr;
+		AddrIPv6 addr;
 		std::string str;
 		str.reserve(_numBytes);
 
@@ -742,19 +742,19 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill addrUnix object.
+	* Invokes the callable provided to fill AddrUnix object.
 	*
 	* @param {int} _numBytes Number of bytes to read.
-	* @param {callable} _fn Some callable that takes arg of type addrUnix or
+	* @param {callable} _fn Some callable that takes arg of type AddrUnix or
 	* void.
-	* @param {SF::recv} _flags Modify default behaviour of recv.
+	* @param {recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const addrUnix &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
+	  -> decltype(_fn(std::declval<const AddrUnix &>()), std::string()) const
 	{
-		addrUnix addr;
+		AddrUnix addr;
 		std::string str;
 		str.reserve(_numBytes);
 
@@ -785,14 +785,14 @@ public:
 	/**
 	* @method setOpt
 	* @access public
-	* Set a socket option from net::SF::opt for Socket using object of type
-	* net::SF::sockOpt.
+	* Set a socket option from net::Opt for Socket using object of type
+	* net::SockOpt.
 	*
-	* @param {net::SF::opt} _opType Option to set for Socket.
-	* @param {net::SF::sockOpt} _opValue socket option structure. Present inside
+	* @param {net::Opt} _opType Option to set for Socket.
+	* @param {net::SockOpt} _opValue socket option structure. Present inside
 	* socket_family.hpp.
 	*/
-	void setOpt(SF::opt, SF::sockOpt) const;
+	void setOpt(Opt, SockOpt) const;
 
 
 	/**
@@ -800,20 +800,20 @@ public:
 	* @access public
 	* Get value of some socket option for Socket.
 	*
-	* @param {net::SF::opt} _opType Option of Socket whose value to get.
+	* @param {net::Opt} _opType Option of Socket whose value to get.
 	*/
-	SF::sockOpt getOpt(SF::opt) const;
+	SockOpt getOpt(Opt) const;
 
 
 	/**
 	* @method stop
 	* @access public
-	* Shutdown Socket using net::SF::shut.
+	* Shutdown Socket using net::shut.
 	*
-	* @param {net::SF::shut} _s Option specifying which side of connection to
+	* @param {net::shut} _s Option specifying which side of connection to
 	* shutdown for Socket.
 	*/
-	void stop(SF::shut _s) const noexcept
+	void stop(Shut _s) const noexcept
 	{
 		shutdown(sockfd, static_cast<int>(_s));
 	}
@@ -829,8 +829,9 @@ public:
 
 	~Socket()
 	{
-		// TODO: unlink() the path in case of addrUnix
-		// unlink(unix.sun_path);
+		if (sock_domain == Domain::UNIX) {
+			unlink(unix.sun_path);
+		}
 		::close(sockfd);
 	}
 };

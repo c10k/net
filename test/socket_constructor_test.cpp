@@ -5,94 +5,38 @@ using namespace net;
 
 TEST(socket, constructor)
 {
-	{
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::IPv4, SF::type::TCP););
-	}
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv4, Type::TCP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv4, Type::UDP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv6, Type::TCP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv6, Type::UDP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::UNIX, Type::TCP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::UNIX, Type::UDP));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv4, Type::TCP, 6));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv6, Type::TCP, 6));
 
-	{
-		// should throw as protocol given is IPv6 but socket is IPv4
-		EXPECT_ANY_THROW(Socket mySocket(SF::domain::IPv4, SF::type::TCP, 41););
-	}
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv4, Type::SEQPACKET, 132));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv6, Type::SEQPACKET, 132));
+	EXPECT_NO_THROW(Socket s(Domain::UNIX, Type::SEQPACKET));
 
-	{
-		// should throw as protocol given is tcp but socket is udp
-		EXPECT_ANY_THROW(Socket mySocket(SF::domain::IPv4, SF::type::UDP, 6););
-	}
+	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv4, Type::TCP, 41));
+	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv4, Type::UDP, 6));
+	EXPECT_ANY_THROW(Socket mySocket(Domain::UNIX, Type::TCP, 3));
 
-	{
-		// should not throw as protocol given is tcp
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::IPv4, SF::type::TCP, 6););
-	}
 
-	{
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::IPv6, SF::type::TCP););
-	}
+	EXPECT_NO_THROW(Socket s(Domain::UNIX, Type::SEQPACKET, 0));
 
-	{
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::IPv6, SF::type::UDP););
-	}
 
-	{
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::UNIX, SF::type::TCP););
-	}
-
-	{
-		EXPECT_NO_THROW(Socket mySocket(SF::domain::UNIX, SF::type::UDP););
-	}
-
-	{
-		// Should throw on any protocol which is not either 0 or 1.
-		EXPECT_ANY_THROW(Socket mySocket(SF::domain::UNIX, SF::type::TCP, 3););
-	}
-
-	{
-		Socket s1(SF::domain::IPv4, SF::type::TCP);
-		Socket s2(SF::domain::IPv6, SF::type::TCP);
-		Socket s3(SF::domain::IPv4, SF::type::UDP);
-		Socket s4(SF::domain::IPv6, SF::type::UDP);
-		ASSERT_GT(s1.getSocket(), 0);
-		ASSERT_GT(s2.getSocket(), 0);
-		ASSERT_GT(s3.getSocket(), 0);
-		ASSERT_GT(s4.getSocket(), 0);
-	}
-
-	{
-		EXPECT_NO_THROW(
-		  Socket mySocket(SF::domain::IPv4, SF::type::SEQPACKET););
-	}
-
-	{
-		EXPECT_NO_THROW(Socket s(SF::domain::UNIX, SF::type::SEQPACKET, 0););
-	}
-	{
-		EXPECT_NO_THROW(Socket s(SF::domain::UNIX, SF::type::SEQPACKET, 0););
-	}
-	{
-		// Should throw when run withoud cap_raw capability.
-		EXPECT_ANY_THROW(Socket s(SF::domain::IPv4, SF::type::RAW, 255););
-	}
-	{
-		// Should throw when run withoud cap_raw capability.
-		EXPECT_ANY_THROW(Socket s(SF::domain::IPv6, SF::type::RAW, 255););
-	}
+	// Should throw when run withoud cap_raw capability.
+	EXPECT_ANY_THROW(Socket s(Domain::IPv4, Type::RAW, 255));
+	EXPECT_ANY_THROW(Socket s(Domain::IPv6, Type::RAW, 255));
 }
 
-// TEST(socket, constructor_within_loop)
-// {
-// 	{
-// 		for (int i = 1; i <= 100000000; i++) {
-// 			EXPECT_NO_THROW(
-// 			  Socket mySocket(SF::domain::IPv4, SF::type::TCP, 6););
-// 		}
-// 	}
-// }
 
-TEST(socket_constructor, raw)
+TEST(Socket, ConstructorRaw)
 {
 	// should not throw when run with cap_raw capability or run with admin
 	// priviliges
 
-	EXPECT_ANY_THROW(Socket mySocket(SF::domain::IPv4, SF::type::RAW, 4););
-
-	EXPECT_ANY_THROW(Socket mySocket(SF::domain::IPv6, SF::type::RAW, 4););
+	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv4, Type::RAW, 4));
+	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv6, Type::RAW, 4));
 }
