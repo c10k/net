@@ -201,10 +201,10 @@ void Socket::send(const std::string &_msg, SF::send _flags,
 }
 
 
-std::string Socket::read(const int _bufSize, bool *_errorNB) const
+std::string Socket::read(const int _numBytes, bool *_errorNB) const
 {
 	std::string str;
-	str.reserve(_bufSize);
+	str.reserve(_numBytes);
 
 	const auto recvd = low_read(::read, str);
 
@@ -225,11 +225,11 @@ std::string Socket::read(const int _bufSize, bool *_errorNB) const
 }
 
 
-std::string Socket::recv(const int _bufSize, SF::recv _flags,
+std::string Socket::recv(const int _numBytes, SF::recv _flags,
                          bool *_errorNB) const
 {
 	std::string str;
-	str.reserve(_bufSize);
+	str.reserve(_numBytes);
 
 	const auto flags = static_cast<int>(_flags);
 	const auto recvd = low_read(::recv, str, flags);

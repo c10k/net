@@ -10,8 +10,8 @@ int main()
 		s.start("0.0.0.0", 24000);
 
 		while (1) {
-			auto peer = s.accept();
-			auto msg  = peer.recv();
+			const auto peer = s.accept();
+			const auto msg  = peer.recv(15);
 			std::cout << msg << "\n";
 		}
 

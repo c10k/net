@@ -50,7 +50,7 @@ private:
 			                                _msg.length() - count,
 			                                std::forward<Args>(args)...);
 			count += written;
-		} while (written > 0);
+		} while (count < _msg.length() && written > 0);
 
 		return written;
 	}
@@ -72,26 +72,12 @@ private:
 	template <typename Fn, typename... Args>
 	auto low_read(Fn &&_fn, std::string &_str, Args &&... args) const
 	{
-		ssize_t recvd = 0;
-		size_t count  = 0;
-
 		const auto bufSize = _str.capacity();
-		const auto buffer  = std::make_unique<char[]>(bufSize + 1);
+		const auto buffer  = std::make_unique<char[]>(bufSize);
 
-		do {
-			recvd = std::forward<Fn>(_fn)(sockfd, buffer.get() + count,
-			                              bufSize - count,
-			                              std::forward<Args>(args)...);
-			count += recvd;
-			if (count == bufSize) {
-				_str.append(buffer.get());
-				_str.reserve(_str.length() + bufSize);
-				std::memset(buffer.get(), 0, bufSize + 1);
-				count = 0;
-			}
-		} while (recvd > 0);
-
-		_str.append(buffer.get(), count);
+		const auto recvd = std::forward<Fn>(_fn)(sockfd, buffer.get(), bufSize,
+		                                         std::forward<Args>(args)...);
+		_str.append(buffer.get(), (recvd > 0) ? recvd: 0);
 		return recvd;
 	}
 
@@ -463,7 +449,7 @@ public:
 	* @param {bool *} _errorNB To signal error in case of non-blocking read.
 	* @returns {string} String of _bufSize bytes read using Socket.
 	*/
-	std::string read(const int = 1024, bool * = nullptr) const;
+	std::string read(const int, bool * = nullptr) const;
 
 
 	/**
@@ -648,7 +634,7 @@ public:
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	* @returns {string} String of _bufSize bytes read from socket.
    */
-	std::string recv(const int = 1024, SF::recv = SF::recv::NONE,
+	std::string recv(const int, SF::recv = SF::recv::NONE,
 	                 bool * = nullptr) const;
 
 
@@ -662,19 +648,19 @@ public:
 	* Throws invalid_argument exception if destination address given is invalid.
 	* Invokes the callable provided to fill addrIPv4 object.
 	*
-	* @param {string} _msg String to be sent using Socket.
+	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type addrIPv4 or
 	* void.
 	* @param {SF::recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
+	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
 	  -> decltype(_fn(std::declval<const addrIPv4 &>()), std::string()) const
 	{
 		addrIPv4 addr;
 		std::string str;
-		str.reserve(_bufSize);
+		str.reserve(_numBytes);
 
 		const auto flags = static_cast<int>(_flags);
 		socklen_t length = sizeof(addr);
@@ -710,19 +696,19 @@ public:
 	* Throws invalid_argument exception if destination address given is invalid.
 	* Invokes the callable provided to fill addrIPv6 object.
 	*
-	* @param {string} _msg String to be sent using Socket.
+	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type addrIPv6 or
 	* void.
 	* @param {SF::recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
+	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
 	  -> decltype(_fn(std::declval<const addrIPv6 &>()), std::string()) const
 	{
 		addrIPv6 addr;
 		std::string str;
-		str.reserve(_bufSize);
+		str.reserve(_numBytes);
 
 		const auto flags = static_cast<int>(_flags);
 		socklen_t length = sizeof(addr);
@@ -758,19 +744,19 @@ public:
 	* Throws invalid_argument exception if destination address given is invalid.
 	* Invokes the callable provided to fill addrUnix object.
 	*
-	* @param {string} _msg String to be sent using Socket.
+	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type addrUnix or
 	* void.
 	* @param {SF::recv} _flags Modify default behaviour of recv.
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _bufSize, F _fn, SF::recv _flags, bool *_errorNB) const
+	auto recv(const int _numBytes, F _fn, SF::recv _flags, bool *_errorNB) const
 	  -> decltype(_fn(std::declval<const addrUnix &>()), std::string()) const
 	{
 		addrUnix addr;
 		std::string str;
-		str.reserve(_bufSize);
+		str.reserve(_numBytes);
 
 		const auto flags = static_cast<int>(_flags);
 		socklen_t length = sizeof(addr);
