@@ -2,6 +2,7 @@
 #define SOCKET_OPTIONS_HPP
 
 #include <utility>
+#include <typeinfo>
 
 extern "C" {
 #include <sys/socket.h>
@@ -31,59 +32,91 @@ enum class Opt {
 #endif
 };
 
-struct SockOpt {
+
+class SockOpt final {
 	union {
 		timeval t;
 		linger l;
 		int i;
 	};
-	enum { TIME, LINGER, INT } type;
+	enum { TIME = 0, LINGER = 1, INT = 2 } type;
 
-	SockOpt(const int _n) { setValue(_n); }
-	SockOpt(const bool _on, const int _linger) { setLinger(_on, _linger); }
-	SockOpt(const decltype(t.tv_sec) _seconds,
-	        const decltype(t.tv_usec) _microseconds)
+	SockOpt(int, int) = delete;
+
+public:
+	SockOpt(const int _n) : i(_n), type(INT) {}
+	explicit SockOpt(const bool _on, const int _linger) : type(LINGER)
 	{
-		setTime(_seconds, _microseconds);
+		l.l_onoff  = _on ? 1 : 0;
+		l.l_linger = _linger;
+	}
+	explicit SockOpt(const long _seconds, const long _microseconds) : type(TIME)
+	{
+		t.tv_sec  = _seconds;
+		t.tv_usec = _microseconds;
 	}
 
 	auto getType() const noexcept { return type; }
 
-	void setTime(const decltype(t.tv_sec) _seconds,
-	             const decltype(t.tv_usec) _microseconds)
-	{
-		t.tv_sec  = _seconds;
-		t.tv_usec = _microseconds;
-		type      = TIME;
-	}
 	auto getTime() const
 	{
-		return (type == TIME)
-		  ? std::make_pair(t.tv_sec, t.tv_usec)
-		  : std::make_pair(static_cast<decltype(t.tv_sec)>(0),
-		                   static_cast<decltype(t.tv_usec)>(0));
+		return (type == TIME) ? std::make_pair(t.tv_sec, t.tv_usec)
+		                      : throw std::bad_cast();
 	}
 
-	void setLinger(const bool _on, const int _linger)
-	{
-		l.l_onoff  = _on ? 1 : 0;
-		l.l_linger = _linger;
-		type       = LINGER;
-	}
 	auto getLinger() const
 	{
 		return (type == LINGER)
 		  ? std::make_pair(static_cast<bool>(l.l_onoff), l.l_linger)
-		  : std::make_pair(false, 0);
+		  : throw std::bad_cast();
 	}
 
-	void setValue(const int _n)
-	{
-		i    = _n;
-		type = INT;
-	}
-	auto getValue() const noexcept { return (type == INT) ? i : 0; }
+	auto getValue() const { return (type == INT) ? i : throw std::bad_cast(); }
 };
+
+
+inline bool operator==(const SockOpt &_lhs, const int _rhs)
+{
+	if (_lhs.getType() == 2) {
+		return _lhs.getValue() == _rhs;
+	} else {
+		return false;
+	}
+}
+inline bool operator==(const int _lhs, const SockOpt &_rhs)
+{
+	return _rhs == _lhs;
+}
+
+
+inline bool operator==(const SockOpt &_lhs, const linger _rhs)
+{
+	if (_lhs.getType() == 1) {
+		const auto lin = _lhs.getLinger();
+		return (lin.first == _rhs.l_onoff && lin.second == _rhs.l_linger);
+	} else {
+		return false;
+	}
+}
+inline bool operator==(const linger _lhs, const SockOpt &_rhs)
+{
+	return _rhs == _lhs;
+}
+
+
+inline bool operator==(const SockOpt &_lhs, const timeval _rhs)
+{
+	if (_lhs.getType() == 0) {
+		const auto time = _lhs.getTime();
+		return (time.first == _rhs.tv_sec && time.second == _rhs.tv_usec);
+	} else {
+		return false;
+	}
+}
+inline bool operator==(const timeval _lhs, const SockOpt &_rhs)
+{
+	return _rhs == _lhs;
+}
 }
 
 #endif

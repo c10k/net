@@ -259,45 +259,55 @@ std::string Socket::recv(const int _numBytes, Recv _flags, bool *_errorNB) const
 
 void Socket::setOpt(Opt _opType, SockOpt _opValue) const
 {
-	enum type {
-		TIME   = _opValue.TIME,
-		LINGER = _opValue.LINGER,
-		INT    = _opValue.INT
-	};
+	enum type { TIME = 0, LINGER = 1, INT = 2 };
+	auto res = -1;
 
-	void *ptr     = nullptr;
-	socklen_t len = 0;
-
+	const auto optname = static_cast<int>(_opType);
 
 	switch (_opType) {
 
-		case Opt::LINGER:
+		case Opt::LINGER: {
 			if (_opValue.getType() != type::LINGER) {
 				throw std::invalid_argument("Invalid socket option");
 			}
-			ptr = (void *) &_opValue.l;
-			len = sizeof(_opValue.l);
+
+			const auto l = _opValue.getLinger();
+			linger lin;
+			lin.l_onoff         = l.first;
+			lin.l_linger        = l.second;
+			const socklen_t len = sizeof(lin);
+
+			res = setsockopt(sockfd, SOL_SOCKET, optname, &lin, len);
 			break;
+		}
 
 		case Opt::RCVTIMEO:
-		case Opt::SNDTIMEO:
+		case Opt::SNDTIMEO: {
 			if (_opValue.getType() != type::TIME) {
 				throw std::invalid_argument("Invalid socket option");
 			}
-			ptr = (void *) &_opValue.t;
-			len = sizeof(_opValue.t);
-			break;
 
-		default:
+			const auto t = _opValue.getTime();
+			timeval time;
+			time.tv_sec         = t.first;
+			time.tv_usec        = t.second;
+			const socklen_t len = sizeof(time);
+
+			res = setsockopt(sockfd, SOL_SOCKET, optname, &time, len);
+			break;
+		}
+
+		default: {
 			if (_opValue.getType() != type::INT) {
 				throw std::invalid_argument("Invalid socket option");
 			}
-			ptr = (void *) &_opValue.i;
-			len = sizeof(_opValue.i);
+			const auto i        = _opValue.getValue();
+			const socklen_t len = sizeof(i);
+
+			res = setsockopt(sockfd, SOL_SOCKET, optname, &i, len);
+		}
 	}
 
-	const auto optname   = static_cast<int>(_opType);
-	const auto res       = setsockopt(sockfd, SOL_SOCKET, optname, ptr, len);
 	const auto currErrno = errno;
 	if (res == -1) {
 		throw std::runtime_error(net::methods::getErrorMsg(currErrno));
@@ -307,38 +317,46 @@ void Socket::setOpt(Opt _opType, SockOpt _opValue) const
 
 SockOpt Socket::getOpt(Opt _opType) const
 {
-	SockOpt opt(0);
-	void *ptr     = nullptr;
-	socklen_t len = 0;
+	const auto optname = static_cast<int>(_opType);
 
 	switch (_opType) {
 
-		case Opt::LINGER:
-			opt.setLinger(false, 0);
-			ptr = (void *) &opt.l;
-			len = sizeof(opt.l);
-			break;
+		case Opt::LINGER: {
+			linger l;
+			socklen_t len  = sizeof(l);
+			const auto res = getsockopt(sockfd, SOL_SOCKET, optname, &l, &len);
+			const auto currErrno = errno;
+			if (res == -1) {
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+			}
+			SockOpt opt(static_cast<bool>(l.l_onoff), l.l_linger);
+			return opt;
+		}
 
 		case Opt::RCVTIMEO:
-		case Opt::SNDTIMEO:
-			opt.setTime(0, 0);
-			ptr = (void *) &opt.t;
-			len = sizeof(opt.t);
-			break;
+		case Opt::SNDTIMEO: {
+			timeval t;
+			socklen_t len  = sizeof(t);
+			const auto res = getsockopt(sockfd, SOL_SOCKET, optname, &t, &len);
+			const auto currErrno = errno;
+			if (res == -1) {
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+			}
+			SockOpt opt(t.tv_sec, t.tv_usec);
+			return opt;
+		}
 
-		default:
-			opt.setValue(0);
-			ptr = (void *) &opt.i;
-			len = sizeof(opt.i);
+		default: {
+			int i;
+			socklen_t len  = sizeof(i);
+			const auto res = getsockopt(sockfd, SOL_SOCKET, optname, &i, &len);
+			const auto currErrno = errno;
+			if (res == -1) {
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+			}
+			SockOpt opt(i);
+			return opt;
+		}
 	}
-
-	const auto optname   = static_cast<int>(_opType);
-	const auto res       = getsockopt(sockfd, SOL_SOCKET, optname, ptr, &len);
-	const auto currErrno = errno;
-	if (res == -1) {
-		throw std::runtime_error(net::methods::getErrorMsg(currErrno));
-	}
-
-	return opt;
 }
 }

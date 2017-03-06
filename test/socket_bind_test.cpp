@@ -11,7 +11,7 @@ TEST(Socket, bind)
 
 	Socket ipv4Socket2(Domain::IPv4, Type::TCP);
 	EXPECT_ANY_THROW(ipv4Socket2.bind(
-	  [](AddrIPv4 &s) { return methods::construct(s, "127.0.0.1", 13000); }));
+	  [](AddrIPv4 &s) { return methods::construct(s, "127.0.0.1", 130000); }));
 
 
 	Socket sock_invalid_addr(Domain::IPv4, Type::TCP);
@@ -91,7 +91,7 @@ TEST(Socket, bind)
 	EXPECT_THROW(badIpv6addr.bind([](AddrIPv4 &s) {
 		return methods::construct(s, "0.0.0.0", 130000000);
 	}),
-	             std::runtime_error);
+	             std::invalid_argument);
 
 
 	Socket badIpv6_4(Domain::IPv6, Type::TCP);
