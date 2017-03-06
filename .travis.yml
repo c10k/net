@@ -79,9 +79,9 @@ before_script:
 
 script:
   - ninja
-  - ./test/testexe
 
 after_success:
+  - ./test/testexe
   - bash <(curl -s https://codecov.io/bash)
 
 notifications:
