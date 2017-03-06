@@ -35,8 +35,6 @@ TEST(Socket, bind)
 	             std::runtime_error);
 
 
-	// will not throw exception bcoz port number is getting converted
-	// internally.
 	Socket sock_bad_port(Domain::IPv4, Type::TCP);
 	EXPECT_ANY_THROW(sock_bad_port.bind(
 	  [](AddrIPv4 &s) { return methods::construct(s, "0.0.0.0", 130000000); }));
@@ -82,9 +80,8 @@ TEST(Socket, bind)
 	             std::runtime_error);
 
 	Socket sock_correct6(Domain::IPv6, Type::TCP);
-	EXPECT_NO_THROW(sock_correct6.bind([](AddrIPv6 &s) {
-		return methods::construct(s, "0:0:0:0:0:0:0:1", 13000);
-	}));
+	EXPECT_NO_THROW(sock_correct6.bind(
+	  [](AddrIPv6 &s) { return methods::construct(s, "::1", 13000); }));
 
 
 	Socket badIpv6addr(Domain::IPv6, Type::TCP);
