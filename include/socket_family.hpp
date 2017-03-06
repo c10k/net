@@ -112,6 +112,10 @@ namespace methods {
 	inline int construct(AddrIPv4 &_addrStruct, const char _addr[],
 	                     const int _port) noexcept
 	{
+		if (_port < 0 || _port > 65535) {
+			return 0;
+		}
+
 		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
 		_addrStruct.sin_family = AF_INET;
 		_addrStruct.sin_port   = htons(_port);
@@ -137,6 +141,10 @@ namespace methods {
 	                     const int _port) noexcept
 	{
 		// TODO: replace code with call to getaddrinfo()
+		if (_port < 0 || _port > 65535) {
+			return 0;
+		}
+
 		std::memset(&_addrStruct, 0, sizeof(_addrStruct));
 		_addrStruct.sin6_family = AF_INET6;
 		_addrStruct.sin6_port   = htons(_port);
