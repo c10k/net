@@ -105,16 +105,14 @@ void startUDPServerIPv4()
 	udpIPv4ServerProcessing(myServerSocket);
 }
 
-TEST(Socket, Send)
+auto msgLen = 15000;
+std::string someString(msgLen, 'a');
+
+TEST(Socket, IPv4Send)
 {
 	std::thread tcpServerThreadIPv4(startTCPServerIPv4);
-	std::thread tcpServerThreadIPv6(startTCPServerIPv6);
 	std::thread udpServerThreadIPv4(startUDPServerIPv4);
-	std::thread udpServerThreadIPv6(startUDPServerIPv6);
-	std::this_thread::sleep_for(3s);
-
-	std::string someString(15000, 'a');
-	auto msgLen = 15000;
+	std::this_thread::sleep_for(2s);
 
 	Socket client1(Domain::IPv4, Type::TCP);
 	client1.connect("127.0.0.1", 15000);
@@ -134,6 +132,22 @@ TEST(Socket, Send)
 	EXPECT_NE(client1.read(5), std::to_string(msgLen));
 	client1.close();
 
+	Socket udpClient1(Domain::IPv4, Type::UDP);
+	EXPECT_NO_THROW(udpClient1.send(someString, [](AddrIPv4 &s) {
+		return methods::construct(s, "127.0.0.1", 15000);
+	}));
+
+	tcpServerThreadIPv4.join();
+	udpServerThreadIPv4.join();
+}
+
+TEST(Socket, IPv6Send)
+{
+
+	std::thread tcpServerThreadIPv6(startTCPServerIPv6);
+	std::thread udpServerThreadIPv6(startUDPServerIPv6);
+	std::this_thread::sleep_for(2s);
+
 	Socket client2(Domain::IPv6, Type::TCP);
 	client2.connect("::1", 16000);
 	EXPECT_NO_THROW(client2.send(someString));
@@ -152,56 +166,11 @@ TEST(Socket, Send)
 	EXPECT_NE(client2.read(5), std::to_string(msgLen));
 	client2.close();
 
-
-	Socket udpClient1(Domain::IPv4, Type::UDP);
-	EXPECT_NO_THROW(udpClient1.send(someString, [](AddrIPv4 &s) {
-		return methods::construct(s, "127.0.0.1", 15000);
-	}));
-
-
 	Socket udpClient2(Domain::IPv6, Type::UDP);
 	EXPECT_NO_THROW(udpClient2.send(someString, [](AddrIPv6 &s) {
 		return methods::construct(s, "::1", 16000);
 	}));
 
-	Socket unixClient(Domain::UNIX, Type::TCP);
-	
-
-	tcpServerThreadIPv4.join();
 	tcpServerThreadIPv6.join();
-	udpServerThreadIPv4.join();
 	udpServerThreadIPv6.join();
-
-
-	// ipv4 client trying to send data to ipv6 server but obviously unsucessful.
-	// Socket ipv4Client(Domain::IPv4, Type::TCP);
-	// EXPECT_ANY_THROW(ipv4Client.connect("::1", 16000));
-	// EXPECT_NO_THROW(ipv4Client.send(someString));
-	// EXPECT_EQ(ipv4Client.read(5), std::to_string(msgLen));
-	//
-
-	// ipv6 client sending data to ipv4 server but fails
-	// Socket ipv6Client(Domain::IPv6, Type::TCP);
-	// EXPECT_NO_THROW(ipv6Client.connect("127.0.0.1", 15000));
-	// EXPECT_NO_THROW(ipv6Client.send(someString));
-	// EXPECT_EQ(ipv6Client.read(5), std::to_string(msgLen));
-	//
-	// ipv6Client.close();
-
-	// Socket incompatibleClient(Domain::IPv4, Type::UDP);
-	// EXPECT_NO_THROW(incompatibleClient.send(someString, [](AddrIPv4 &s) {
-	// return methods::construct(s, "127.0.0.1", 15000);
-	// }));
-
-
-	// Socket udpClient3(Domain::IPv4, Type::UDP);
-	// udpClient3.send(someString, [](AddrIPv6 &s) {
-	// 	return methods::construct(s, "::1", 16000);
-	// });
-	//
-
-	// Socket udpClient4(Domain::IPv6, Type::UDP);
-	// udpClient4.send(someString, [](AddrIPv4 &s) {
-	// 	return methods::construct(s, "127.0.0.1", 15000);
-	// });
 }
