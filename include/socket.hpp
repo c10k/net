@@ -655,8 +655,9 @@ public:
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const AddrIPv4 &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags = Recv::NONE,
+	          bool *_errorNB = nullptr) const
+	  -> decltype(_fn(std::declval<AddrIPv4 &>()), std::string()) const
 	{
 		AddrIPv4 addr;
 		std::string str;
@@ -703,8 +704,9 @@ public:
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const AddrIPv6 &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags = Recv::NONE,
+	          bool *_errorNB = nullptr) const
+	  -> decltype(_fn(std::declval<AddrIPv6 &>()), std::string()) const
 	{
 		AddrIPv6 addr;
 		std::string str;
@@ -751,8 +753,9 @@ public:
 	* @param {bool *} _errorNB To signal error in case of non-blocking recv.
 	*/
 	template <typename F>
-	auto recv(const int _numBytes, F _fn, Recv _flags, bool *_errorNB) const
-	  -> decltype(_fn(std::declval<const AddrUnix &>()), std::string()) const
+	auto recv(const int _numBytes, F _fn, Recv _flags = Recv::NONE,
+	          bool *_errorNB = nullptr) const
+	  -> decltype(_fn(std::declval<AddrUnix &>()), std::string()) const
 	{
 		AddrUnix addr;
 		std::string str;

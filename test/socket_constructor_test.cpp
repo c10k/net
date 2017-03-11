@@ -26,7 +26,7 @@ TEST(socket, constructor)
 	EXPECT_NO_THROW(Socket s(Domain::UNIX, Type::SEQPACKET, 0));
 
 
-	// Should throw when run withoud cap_raw capability.
+	// Should throw when run without cap_raw capability.
 	EXPECT_ANY_THROW(Socket s(Domain::IPv4, Type::RAW, 255));
 	EXPECT_ANY_THROW(Socket s(Domain::IPv6, Type::RAW, 255));
 }
