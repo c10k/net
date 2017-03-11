@@ -50,7 +50,6 @@ void tcpServerProcessing(Socket &serverSocket)
 		while (!(recvd >= 15000)) {
 			auto msg = peer.read(1024);
 			recvd += msg.size();
-			//
 		}
 		auto response = std::to_string(recvd);
 		peer.send(response);
@@ -59,7 +58,6 @@ void tcpServerProcessing(Socket &serverSocket)
 		// while (!(recvd >= 15000)) {
 		// 	auto msg = peer.read(1024);
 		// 	recvd += msg.size();
-		// 	//
 		// }
 		// response = std::to_string(recvd);
 		// peer.send(response);
@@ -68,7 +66,6 @@ void tcpServerProcessing(Socket &serverSocket)
 		while (!(recvd >= 15000)) {
 			auto msg = peer.read(1024);
 			recvd += msg.size();
-			//
 		}
 		response = std::to_string(recvd);
 		peer.send(response);
@@ -118,7 +115,7 @@ TEST(Socket, IPv4Send)
 	client1.connect("127.0.0.1", 15000);
 	EXPECT_NO_THROW(client1.send(someString));
 	EXPECT_EQ(client1.read(5), std::to_string(msgLen));
-	// !! Resolve This !! and then accordingly change commented portion of tcp
+	// -- Resolve This -- and then accordingly change commented portion of tcp
 	// server.
 	// EXPECT_THROW(client1.send(someString, [](AddrIPv4 &s) { return 5; }),
 	//              std::runtime_error);
@@ -152,7 +149,7 @@ TEST(Socket, IPv6Send)
 	client2.connect("::1", 16000);
 	EXPECT_NO_THROW(client2.send(someString));
 	EXPECT_EQ(client2.read(5), std::to_string(msgLen));
-	// !! Resolve This !! and then accordingly change commented portion of tcp
+	// -- Resolve This -- and then accordingly change commented portion of tcp
 	// server.
 	// EXPECT_THROW(client2.send(someString, [](AddrIPv6 &s) { return 5; }),
 	//              std::runtime_error);
