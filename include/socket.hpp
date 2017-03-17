@@ -646,7 +646,8 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill AddrIPv4 object.
+	* Invokes the callable provided to return AddrIPv4 object from where msg has
+	* been received.
 	*
 	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type AddrIPv4 or
@@ -695,7 +696,8 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill AddrIPv6 object.
+	* Invokes the callable provided to return AddrIPv6 object from where msg has
+	* been received.
 	*
 	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type AddrIPv6 or
@@ -744,7 +746,8 @@ public:
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
-	* Invokes the callable provided to fill AddrUnix object.
+	* Invokes the callable provided to return AddrUnix object from where msg has
+	* been received.
 	*
 	* @param {int} _numBytes Number of bytes to read.
 	* @param {callable} _fn Some callable that takes arg of type AddrUnix or
