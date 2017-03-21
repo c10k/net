@@ -24,19 +24,11 @@ TEST(socket, constructor)
 
 
 	EXPECT_NO_THROW(Socket s(Domain::UNIX, Type::SEQPACKET, 0));
-
-
-	// Should throw when run without cap_raw capability.
-	EXPECT_ANY_THROW(Socket s(Domain::IPv4, Type::RAW, 255));
-	EXPECT_ANY_THROW(Socket s(Domain::IPv6, Type::RAW, 255));
 }
 
 
 TEST(Socket, ConstructorRaw)
 {
-	// should not throw when run with cap_raw capability or run with admin
-	// priviliges
-
-	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv4, Type::RAW, 4));
-	EXPECT_ANY_THROW(Socket mySocket(Domain::IPv6, Type::RAW, 4));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv4, Type::RAW, 4));
+	EXPECT_NO_THROW(Socket mySocket(Domain::IPv6, Type::RAW, 4));
 }
