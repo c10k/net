@@ -80,7 +80,7 @@ dev:
         name: test project
         code: |
           cd build
-          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
+          ./test/testexe
 
 
 build-gcc-default:
@@ -151,7 +151,7 @@ build-gcc-default:
         name: test project
         code: |
           cd build
-          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
+          ./test/testexe
 
 
 build-clang-default:
@@ -227,7 +227,7 @@ build-clang-default:
         name: test project
         code: |
           cd build
-          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
+          ./test/testexe
 
 
 build-gcc-5:
@@ -300,7 +300,7 @@ build-gcc-5:
         name: test project
         code: |
           cd build
-          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
+          ./test/testexe
 
 
 build-gcc-6:
@@ -375,4 +375,4 @@ build-gcc-6:
         name: test project
         code: |
           cd build
-          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
+          ./test/testexe
