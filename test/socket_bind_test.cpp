@@ -59,7 +59,8 @@ TEST(Socket, Bind)
 
 	// when given callable doesn't fill it's structure object argument.
 	Socket sock_liar(Domain::IPv4, Type::TCP);
-	ASSERT_NO_THROW(sock_liar.bind([](AddrIPv4 &s) { return 5; }));
+	ASSERT_THROW(sock_liar.bind([](AddrIPv4 &s) { return 5; }),
+	             std::runtime_error);
 	ASSERT_ANY_THROW(sock_liar.connect("127.0.0.1", 15000));
 
 

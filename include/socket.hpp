@@ -195,7 +195,7 @@ public:
 		AddrIPv4 addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::bind(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -227,7 +227,7 @@ public:
 		AddrIPv6 addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::bind(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -259,7 +259,7 @@ public:
 		AddrUnix addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::bind(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -308,7 +308,7 @@ public:
 		AddrIPv4 addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -350,7 +350,7 @@ public:
 		AddrIPv6 addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -392,7 +392,7 @@ public:
 		AddrUnix addr;
 
 		auto res = _fn(addr);
-		if (res == 1) {
+		if (res >= 1) {
 			res = ::connect(sockfd, (sockaddr *) &addr, sizeof(addr));
 			res = (res == 0) ? 1 : res;
 		}
@@ -520,7 +520,7 @@ public:
 		}
 
 		ssize_t sent = -1;
-		if (res == 1) {
+		if (res >= 1) {
 			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
@@ -571,7 +571,7 @@ public:
 		}
 
 		ssize_t sent = -1;
-		if (res == 1) {
+		if (res >= 1) {
 			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
@@ -622,7 +622,7 @@ public:
 		}
 
 		ssize_t sent = -1;
-		if (res == 1) {
+		if (res >= 1) {
 			sent = low_write(::sendto, _msg, flags, (sockaddr *) &addr,
 			                 sizeof(addr));
 		}
