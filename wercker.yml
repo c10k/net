@@ -80,7 +80,7 @@ build-gcc-default:
         name: test project
         code: |
           cd build
-          sudo ./test/testexe
+          ./test/testexe
 
 
 build-clang-default:
@@ -156,7 +156,7 @@ build-clang-default:
         name: test project
         code: |
           cd build
-          sudo ./test/testexe
+          ./test/testexe
 
 
 build-gcc-5:
@@ -229,7 +229,7 @@ build-gcc-5:
         name: test project
         code: |
           cd build
-          sudo ./test/testexe
+          ./test/testexe
 
 
 build-gcc-6:
@@ -304,7 +304,7 @@ build-gcc-6:
         name: test project
         code: |
           cd build
-          sudo ./test/testexe
+          ./test/testexe
 
 
 address-sanitizer:
@@ -380,7 +380,7 @@ address-sanitizer:
         name: test project
         code: |
           cd build
-          sudo ./test/testexe
+          ./test/testexe
 
 
 valgrind-suite:
@@ -471,28 +471,28 @@ valgrind-suite:
         name: valgrind memcheck
         code: |
           cd build
-          sudo valgrind ./test/testexe
+          valgrind ./test/testexe
 
     - script:
         name: valgrind cachegrind
         code: |
           cd build
-          sudo valgrind --tool=cachegrind ./test/testexe
+          valgrind --tool=cachegrind ./test/testexe
 
     - script:
         name: valgrind massif
         code: |
           cd build
-          sudo valgrind --tool=massif ./test/testexe
+          valgrind --tool=massif ./test/testexe
 
     - script:
         name: valgrind drd
         code: |
           cd build
-          sudo valgrind --tool=drd ./test/testexe
+          valgrind --tool=drd ./test/testexe
 
     - script:
         name: valgrind helgrind
         code: |
           cd build
-          sudo valgrind --tool=helgrind ./test/testexe
+          valgrind --tool=helgrind ./test/testexe
