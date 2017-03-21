@@ -34,6 +34,7 @@ TEST(Socket, Connectv4)
 
 	std::thread serverThread1(runServer, std::ref(server4), 15010);
 	serverThread1.detach();
+	std::this_thread::sleep_for(1s);
 
 	Socket client4(Domain::IPv4, Type::TCP);
 	ASSERT_NO_THROW(client4.connect("127.0.0.1", 15010));
@@ -44,10 +45,11 @@ TEST(Socket, Connectv4)
 TEST(Socket, Connectv6)
 {
 	Socket server6(Domain::IPv6, Type::TCP);
-	std::thread serverThread1(runServer, std::ref(server6), 15011);
+	std::thread serverThread1(runServer, std::ref(server6), 15020);
 	serverThread1.detach();
+	std::this_thread::sleep_for(1s);
 
 	Socket client6(Domain::IPv6, Type::TCP);
-	ASSERT_NO_THROW(client6.connect("::1", 15011));
+	ASSERT_NO_THROW(client6.connect("::1", 15020));
 	client6.close();
 }

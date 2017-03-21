@@ -12,77 +12,6 @@ build-start:
           cat /etc/*release
 
 
-dev:
-
-  steps:
-
-    - script:
-        name: update system
-        code: |
-          export DEBIAN_FRONTEND=noninteractive
-          export LANGUAGE=en_US.UTF-8
-          export LANG=en_US.UTF-8
-          export LC_ALL=en_US.UTF-8
-          locale-gen en_US.UTF-8
-          dpkg-reconfigure locales
-          apt-get -y update && apt-get -y upgrade
-
-    - script:
-        name: install gcc
-        code: |
-          apt-get -y install build-essential gcc g++
-
-    - script:
-        name: echo gcc version
-        code: |
-          gcc --version
-          g++ --version
-
-    - script:
-        name: install meson and ninja dependencies
-        code: |
-          apt-get -y install git curl wget python3 python3-pip pkg-config
-
-    - script:
-        name: install project dependencies
-        code: |
-          apt-get -y install libgtest-dev
-
-    - script:
-        name: install meson
-        code: |
-          pip3 install meson
-
-    - script:
-        name: install ninja build
-        code: |
-          git clone git://github.com/ninja-build/ninja.git && cd ninja
-          git checkout release
-          python3 ./configure.py --bootstrap
-          cp ninja /usr/bin/ninja
-          cd ../
-          rm -rf ninja/
-
-    - script:
-        name: echo meson and ninja versions
-        code: |
-          meson --version
-          ninja --version
-
-    - script:
-        name: build project
-        code: |
-          mkdir build && cd build
-          meson ..
-          ninja
-
-    - script:
-        name: test project
-        code: |
-          cd build
-          ./test/testexe
-
-
 build-gcc-default:
 
   steps:
@@ -376,3 +305,194 @@ build-gcc-6:
         code: |
           cd build
           ./test/testexe
+
+
+address-sanitizer:
+
+  steps:
+
+    - script:
+        name: update system
+        code: |
+          export DEBIAN_FRONTEND=noninteractive
+          export LANGUAGE=en_US.UTF-8
+          export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
+          apt-get -y update && apt-get -y upgrade
+
+    - script:
+        name: install clang
+        code: |
+          apt-get -y install build-essential clang
+
+    - script:
+        name: echo clang version
+        code: |
+          clang --version
+          clang++ --version
+
+    - script:
+        name: install meson and ninja dependencies
+        code: |
+          apt-get -y install git curl wget python3 python3-pip pkg-config
+
+    - script:
+        name: install project dependencies
+        code: |
+          apt-get -y install libgtest-dev
+
+    - script:
+        name: install meson
+        code: |
+          pip3 install meson
+
+    - script:
+        name: install ninja build
+        code: |
+          git clone git://github.com/ninja-build/ninja.git && cd ninja
+          git checkout release
+          python3 ./configure.py --bootstrap
+          cp ninja /usr/bin/ninja
+          cd ../
+          rm -rf ninja/
+
+    - script:
+        name: echo meson and ninja versions
+        code: |
+          meson --version
+          ninja --version
+
+    - script:
+        name: remove gcc compiler
+        code: |
+          apt-get -y remove gcc
+
+    - script:
+        name: build project
+        code: |
+          mkdir build && cd build
+          meson --default-library=static -Db_sanitize=address ..
+          ninja
+
+    - script:
+        name: test project
+        code: |
+          cd build
+          ./test/testexe
+
+
+valgrind-suite:
+
+  steps:
+
+    - script:
+        name: update system
+        code: |
+          export DEBIAN_FRONTEND=noninteractive
+          export LANGUAGE=en_US.UTF-8
+          export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
+          apt-get -yq update && apt-get -yq upgrade
+          apt-get install -yq software-properties-common
+          add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          apt-get -y update && apt-get -y upgrade
+
+    - script:
+        name: install gcc 6
+        code: |
+          apt-get -y install gcc-6 g++-6
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 100
+          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 100
+          apt-get -y install build-essential
+          update-alternatives --config gcc
+          update-alternatives --config g++
+
+    - script:
+        name: echo gcc version
+        code: |
+          gcc --version
+          g++ --version
+
+    - script:
+        name: install dependencies
+        code: |
+          apt-get -y install git curl wget python3 python3-pip pkg-config
+          apt-get -y install libgtest-dev
+
+    - script:
+        name: install ninja build
+        code: |
+          git clone git://github.com/ninja-build/ninja.git && cd ninja
+          git checkout release
+          python3 ./configure.py --bootstrap
+          cp ninja /usr/bin/ninja
+          cd ../
+          rm -rf ninja/
+
+    - script:
+        name: install meson
+        code: |
+          pip3 install meson
+
+    - script:
+        name: echo meson and ninja versions
+        code: |
+          meson --version
+          ninja --version
+
+    - script:
+        name: build project
+        code: |
+          mkdir build && cd build
+          meson ..
+          ninja
+
+    - script:
+        name: build valgrind
+        code: |
+          cd build
+          apt-get -y install subversion autotools-dev automake
+          apt-get -y remove valgrind
+          svn co svn://svn.valgrind.org/valgrind/trunk valgrind
+          cd valgrind
+          ./autogen.sh
+          ./configure
+          make
+          make install
+          cd ..
+          rm -rf valgrind/
+          valgrind --version
+
+    - script:
+        name: valgrind memcheck
+        code: |
+          cd build
+          valgrind ./test/testexe
+
+    - script:
+        name: valgrind cachegrind
+        code: |
+          cd build
+          valgrind --tool=cachegrind ./test/testexe
+
+    - script:
+        name: valgrind massif
+        code: |
+          cd build
+          valgrind --tool=massif ./test/testexe
+
+    - script:
+        name: valgrind drd
+        code: |
+          cd build
+          valgrind --tool=drd ./test/testexe
+
+    - script:
+        name: valgrind helgrind
+        code: |
+          cd build
+          valgrind --tool=helgrind ./test/testexe

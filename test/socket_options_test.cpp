@@ -3,7 +3,7 @@
 
 using namespace net;
 
-TEST(SocketOptions, getType)
+TEST(SocketOptions, GetType)
 {
 	SockOpt s1(1), s2(true, 5), s3(5L, 500L);
 	enum { TIME = 0, LINGER = 1, INT = 2 } type;
