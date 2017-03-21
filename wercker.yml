@@ -1,7 +1,7 @@
 box: ubuntu
 
 
-start-build:
+build:
 
   steps:
 
