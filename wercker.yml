@@ -80,7 +80,7 @@ build-gcc-default:
         name: test project
         code: |
           cd build
-          ./test/testexe
+          sudo ./test/testexe
 
 
 build-clang-default:
@@ -156,7 +156,7 @@ build-clang-default:
         name: test project
         code: |
           cd build
-          ./test/testexe
+          sudo ./test/testexe
 
 
 build-gcc-5:
@@ -229,7 +229,7 @@ build-gcc-5:
         name: test project
         code: |
           cd build
-          ./test/testexe
+          sudo ./test/testexe
 
 
 build-gcc-6:
@@ -304,7 +304,7 @@ build-gcc-6:
         name: test project
         code: |
           cd build
-          ./test/testexe
+          sudo ./test/testexe
 
 
 address-sanitizer:
@@ -380,7 +380,7 @@ address-sanitizer:
         name: test project
         code: |
           cd build
-          ./test/testexe
+          sudo ./test/testexe
 
 
 valgrind-suite:
@@ -420,7 +420,7 @@ valgrind-suite:
     - script:
         name: install dependencies
         code: |
-          apt-get -y install git curl wget python3 python3-pip pkg-config
+          apt-get -y install git curl wget python3 python3-pip pkg-config valgrind
           apt-get -y install libgtest-dev
 
     - script:
@@ -448,7 +448,7 @@ valgrind-suite:
         name: build project
         code: |
           mkdir build && cd build
-          meson ..
+          meson --default-library=static ..
           ninja
 
     - script:
@@ -471,28 +471,28 @@ valgrind-suite:
         name: valgrind memcheck
         code: |
           cd build
-          valgrind ./test/testexe
+          sudo valgrind ./test/testexe
 
     - script:
         name: valgrind cachegrind
         code: |
           cd build
-          valgrind --tool=cachegrind ./test/testexe
+          sudo valgrind --tool=cachegrind ./test/testexe
 
     - script:
         name: valgrind massif
         code: |
           cd build
-          valgrind --tool=massif ./test/testexe
+          sudo valgrind --tool=massif ./test/testexe
 
     - script:
         name: valgrind drd
         code: |
           cd build
-          valgrind --tool=drd ./test/testexe
+          sudo valgrind --tool=drd ./test/testexe
 
     - script:
         name: valgrind helgrind
         code: |
           cd build
-          valgrind --tool=helgrind ./test/testexe
+          sudo valgrind --tool=helgrind ./test/testexe
