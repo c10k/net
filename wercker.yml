@@ -470,34 +470,33 @@ valgrind-suite:
     - script:
         name: valgrind memcheck
         code: |
-          sleep 20
           cd build
           valgrind ./test/testexe
 
     - script:
         name: valgrind cachegrind
         code: |
-          sleep 20
           cd build
+          sleep 60
           valgrind --tool=cachegrind ./test/testexe
 
     - script:
         name: valgrind massif
         code: |
-          sleep 20
           cd build
+          sleep 60
           valgrind --tool=massif ./test/testexe
 
     - script:
         name: valgrind drd
         code: |
-          sleep 20
           cd build
+          sleep 60
           valgrind --tool=drd ./test/testexe
 
     - script:
         name: valgrind helgrind
         code: |
-          sleep 20
           cd build
+          sleep 60
           valgrind --tool=helgrind ./test/testexe
