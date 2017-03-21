@@ -1,7 +1,7 @@
 box: ubuntu
 
 
-build:
+build-start:
 
   steps:
 
@@ -11,6 +11,76 @@ build:
           cat /proc/version
           cat /etc/*release
 
+
+build:
+
+  steps:
+
+    - script:
+        name: update system
+        code: |
+          export DEBIAN_FRONTEND=noninteractive
+          export LANGUAGE=en_US.UTF-8
+          export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
+          apt-get -y update && apt-get -y upgrade
+
+    - script:
+        name: install gcc
+        code: |
+          apt-get -y install build-essential gcc g++
+
+    - script:
+        name: echo gcc version
+        code: |
+          gcc --version
+          g++ --version
+
+    - script:
+        name: install meson and ninja dependencies
+        code: |
+          apt-get -y install git curl wget python3 python3-pip pkg-config
+
+    - script:
+        name: install project dependencies
+        code: |
+          apt-get -y install libgtest-dev
+
+    - script:
+        name: install meson
+        code: |
+          pip3 install meson
+
+    - script:
+        name: install ninja build
+        code: |
+          git clone git://github.com/ninja-build/ninja.git && cd ninja
+          git checkout release
+          python3 ./configure.py --bootstrap
+          cp ninja /usr/bin/ninja
+          cd ../
+          rm -rf ninja/
+
+    - script:
+        name: echo meson and ninja versions
+        code: |
+          meson --version
+          ninja --version
+
+    - script:
+        name: build project
+        code: |
+          mkdir build && cd build
+          meson ..
+          ninja
+
+    - script:
+        name: test project
+        code: |
+          cd build
+          (ninja test && cat meson-logs/testlog.txt) || ./test/testexe
 
 
 build-gcc-default:
