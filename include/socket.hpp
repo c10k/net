@@ -160,6 +160,26 @@ public:
 
 
 	/**
+	* @method getDomain
+	* @access public
+	* Get the Domain type of Socket.
+	*
+	* @returns {Domain} for net::Socket.
+	*/
+	auto getDomain() const noexcept { return sock_domain; }
+
+
+	/**
+	* @method getType
+	* @access public
+	* Get the Protocol Type of Socket.
+	*
+	* @returns {Type} for net::Socket.
+	*/
+	auto getType() const noexcept { return sock_type; }
+
+
+	/**
 	* @method bind
 	* @access public
 	* Binds net::Socket to local address if successful else if Address argument
@@ -826,6 +846,19 @@ public:
 
 
 	/**
+	* method unlink
+	* @access public
+	* Unlinks the unix socket path.
+	*/
+	void unlink() const noexcept
+	{
+		if (sock_domain == Domain::UNIX) {
+			::unlink(unix.sun_path);
+		}
+	}
+
+
+	/**
 	* method close
 	* @access public
 	* Closes the Socket for terminating connection.
@@ -836,7 +869,7 @@ public:
 	~Socket()
 	{
 		if (sock_domain == Domain::UNIX) {
-			unlink(unix.sun_path);
+			::unlink(unix.sun_path);
 		}
 		::close(sockfd);
 	}
