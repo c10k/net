@@ -1,8 +1,10 @@
-# NET
+# NET [![Build Status](https://travis-ci.org/c10k/net.svg?branch=master)](https://travis-ci.org/c10k/net) [![codecov](https://codecov.io/gh/c10k/net/branch/master/graph/badge.svg)](https://codecov.io/gh/c10k/net)
 
 ![Logo](https://cloud.githubusercontent.com/assets/7630575/23608808/1e1de904-0291-11e7-8c6a-003f7a29e59c.png)
 
 #### Net is a High-level & Efficient Modern C++ library for Network Programming.
+
+[![wercker status](https://app.wercker.com/status/945fa8542bfa8066980fc234e4e91aee/m/ "wercker status")](https://app.wercker.com/project/byKey/945fa8542bfa8066980fc234e4e91aee)
 
 It uses standard library functions with no other dependencies and provides a safer yet expressive version of original Berkeley Sockets API. Common mistakes are abstracted away giving a boost in productivity for library user.
 
