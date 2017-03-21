@@ -12,7 +12,7 @@ build-start:
           cat /etc/*release
 
 
-build:
+dev:
 
   steps:
 
