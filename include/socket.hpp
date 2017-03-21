@@ -843,6 +843,19 @@ public:
 
 
 	/**
+	* method unlink
+	* @access public
+	* Unlinks the unix socket path.
+	*/
+	void unlink() const noexcept
+	{
+		if (sock_domain == Domain::UNIX) {
+			::unlink(unix.sun_path);
+		}
+	}
+
+
+	/**
 	* method close
 	* @access public
 	* Closes the Socket for terminating connection.
@@ -853,7 +866,7 @@ public:
 	~Socket()
 	{
 		if (sock_domain == Domain::UNIX) {
-			unlink(unix.sun_path);
+			::unlink(unix.sun_path);
 		}
 		::close(sockfd);
 	}
