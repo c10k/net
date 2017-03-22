@@ -55,7 +55,7 @@ void tcpServerProcessing(Socket &serverSocket)
 		recvd += msg.size();
 	}
 	auto response = std::to_string(recvd);
-	peer.send(response);
+	peer.write(response);
 
 	recvd = 0;
 	while (!(recvd >= sendTest::msgLen)) {

@@ -48,36 +48,42 @@ void udpIPv6ServerProcessing(Socket &serverSocket)
 	EXPECT_EQ(res, recvTest::msg1);
 }
 
-std::string getPeerIp(const Socket &peer, const Domain d)
+std::string getPeerIp(const Socket &peer)
 {
 	std::string actualIp(100, ' ');
-	union {
-		sockaddr_in actualPeerIp4;
-		sockaddr_in6 actualPeerIp6;
-	};
+
+	sockaddr_in actualPeerIp4;
+	sockaddr_in6 actualPeerIp6;
 
 	int status          = 0;
 	const char *status2 = nullptr;
+	auto d              = peer.getDomain();
 
-	if (d == Domain::IPv4) {
-		socklen_t actualPeerIpLen4 = sizeof(actualPeerIp4);
+	switch (d) {
 
-		status = getpeername(peer.getSocket(), (sockaddr *) &actualPeerIp4,
-		                     &actualPeerIpLen4);
+		case Domain::IPv4: {
+			socklen_t actualPeerIpLen4 = sizeof(actualPeerIp4);
 
-		status2 = inet_ntop(static_cast<int>(d), &actualPeerIp4.sin_addr.s_addr,
-		                    &actualIp.front(), actualIp.size());
-	}
+			status = getpeername(peer.getSocket(), (sockaddr *) &actualPeerIp4,
+			                     &actualPeerIpLen4);
 
-	if (d == Domain::IPv6) {
-		socklen_t actualPeerIpLen6 = sizeof(actualPeerIp6);
+			status2
+			  = inet_ntop(static_cast<int>(d), &actualPeerIp4.sin_addr.s_addr,
+			              &actualIp.front(), actualIp.size());
+		} break;
 
-		status = getpeername(peer.getSocket(), (sockaddr *) &actualPeerIp6,
-		                     &actualPeerIpLen6);
+		case Domain::IPv6: {
+			socklen_t actualPeerIpLen6 = sizeof(actualPeerIp6);
 
-		status2
-		  = inet_ntop(static_cast<int>(d), &actualPeerIp6.sin6_addr.s6_addr,
-		              &actualIp.front(), actualIp.size());
+			status = getpeername(peer.getSocket(), (sockaddr *) &actualPeerIp6,
+			                     &actualPeerIpLen6);
+
+			status2
+			  = inet_ntop(static_cast<int>(d), &actualPeerIp6.sin6_addr.s6_addr,
+			              &actualIp.front(), actualIp.size());
+		} break;
+
+		default: break;
 	}
 
 	if (status == -1) {
@@ -98,14 +104,14 @@ void tcpIPv4ServerProcessing(Socket &serverSocket)
 
 	const auto msg = peer.read(recvTest::msgLen2);
 	if (msg == recvTest::msg1) {
-		peer.send("recvTest::msg1");
+		peer.write("recvTest::msg1");
 	} else {
-		peer.send(" ");
+		peer.write(" ");
 	}
 
 	const auto otherMsg = peer.recv(recvTest::msgLen2, [&](AddrIPv4 &s) {
 
-		const auto actualPeerIp = getPeerIp(peer, Domain::IPv4);
+		const auto actualPeerIp = getPeerIp(peer);
 
 		std::string str(100, ' ');
 		const auto ptr
@@ -139,14 +145,14 @@ void tcpIPv6ServerProcessing(Socket &serverSocket)
 
 	const auto msg = peer.read(recvTest::msgLen2);
 	if (msg == recvTest::msg1) {
-		peer.send("recvTest::msg1");
+		peer.write("recvTest::msg1");
 	} else {
-		peer.send(" ");
+		peer.write(" ");
 	}
 
 	const auto otherMsg = peer.recv(recvTest::msgLen2, [&](AddrIPv6 &s) {
 
-		const auto actualPeerIp = getPeerIp(peer, Domain::IPv6);
+		const auto actualPeerIp = getPeerIp(peer);
 
 		std::string str(100, ' ');
 		const auto ptr
