@@ -81,6 +81,7 @@ build-gcc-default:
         code: |
           cd build
           ./test/testexe
+          sudo ./test/sudotestexe
 
     - script:
         name: generate coverage
@@ -169,6 +170,7 @@ build-clang-default:
         code: |
           cd build
           ./test/testexe
+          sudo ./test/sudotestexe
 
 
 build-gcc-5:
@@ -242,6 +244,7 @@ build-gcc-5:
         code: |
           cd build
           ./test/testexe
+          sudo ./test/sudotestexe
 
 
 build-gcc-6:
@@ -317,6 +320,7 @@ build-gcc-6:
         code: |
           cd build
           ./test/testexe
+          sudo ./test/sudotestexe
 
 
 address-sanitizer:
@@ -393,6 +397,7 @@ address-sanitizer:
         code: |
           cd build
           ./test/testexe
+          sudo ./test/sudotestexe
 
 
 valgrind-suite:
@@ -484,6 +489,7 @@ valgrind-suite:
         code: |
           cd build
           valgrind ./test/testexe
+          sudo valgrind ./test/sudotestexe
 
     - script:
         name: valgrind cachegrind
@@ -491,6 +497,7 @@ valgrind-suite:
           cd build
           sleep 60
           valgrind --tool=cachegrind ./test/testexe
+          sudo valgrind --tool=cachegrind ./test/sudotestexe
 
     - script:
         name: valgrind massif
@@ -498,6 +505,7 @@ valgrind-suite:
           cd build
           sleep 60
           valgrind --tool=massif ./test/testexe
+          sudo valgrind --tool=massif ./test/sudotestexe
 
     - script:
         name: valgrind drd
@@ -505,6 +513,7 @@ valgrind-suite:
           cd build
           sleep 60
           valgrind --tool=drd ./test/testexe
+          sudo valgrind --tool=drd ./test/sudotestexe
 
     - script:
         name: valgrind helgrind
@@ -512,3 +521,4 @@ valgrind-suite:
           cd build
           sleep 60
           valgrind --tool=helgrind ./test/testexe
+          sudo valgrind --tool=helgrind ./test/sudotestexe

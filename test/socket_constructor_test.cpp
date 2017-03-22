@@ -36,10 +36,3 @@ TEST(socket, ConstructorUnix)
 
 	EXPECT_ANY_THROW(Socket s(Domain::UNIX, Type::TCP, 3));
 }
-
-
-TEST(Socket, ConstructorRaw)
-{
-	EXPECT_NO_THROW(Socket s(Domain::IPv4, Type::RAW, 4));
-	EXPECT_NO_THROW(Socket s(Domain::IPv6, Type::RAW, 4));
-}
