@@ -41,7 +41,7 @@ build-gcc-default:
     - script:
         name: install meson and ninja dependencies
         code: |
-          apt-get -y install git curl wget python3 python3-pip pkg-config
+          apt-get -y install git curl wget python3 python3-pip pkg-config lcov
 
     - script:
         name: install project dependencies
@@ -73,7 +73,7 @@ build-gcc-default:
         name: build project
         code: |
           mkdir build && cd build
-          meson ..
+          meson -Db_coverage=true --default-library=static ..
           ninja
 
     - script:
@@ -81,6 +81,18 @@ build-gcc-default:
         code: |
           cd build
           ./test/testexe
+
+    - script:
+        name: generate coverage
+        code: |
+          cd build
+          ninja coverage-html
+
+    - script:
+        name: upload coverage
+        code: |
+          cd build
+          bash <(curl -s https://codecov.io/bash)
 
 
 build-clang-default:

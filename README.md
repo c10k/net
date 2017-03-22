@@ -1,4 +1,4 @@
-# NET [![Build Status](https://travis-ci.org/c10k/net.svg?branch=master)](https://travis-ci.org/c10k/net) [![codecov](https://codecov.io/gh/c10k/net/branch/master/graph/badge.svg)](https://codecov.io/gh/c10k/net)
+# NET [![codecov](https://codecov.io/gh/c10k/net/branch/master/graph/badge.svg)](https://codecov.io/gh/c10k/net)
 
 ![Logo](https://cloud.githubusercontent.com/assets/7630575/23608808/1e1de904-0291-11e7-8c6a-003f7a29e59c.png)
 
