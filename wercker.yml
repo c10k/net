@@ -80,6 +80,7 @@ build-gcc-default:
         name: test project
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           ./test/testexe
 
     - script:
@@ -168,6 +169,7 @@ build-clang-default:
         name: test project
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           ./test/testexe
 
 
@@ -241,6 +243,7 @@ build-gcc-5:
         name: test project
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           ./test/testexe
 
 
@@ -316,6 +319,7 @@ build-gcc-6:
         name: test project
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           ./test/testexe
 
 
@@ -392,6 +396,7 @@ address-sanitizer:
         name: test project
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           ./test/testexe
 
 
@@ -483,6 +488,7 @@ valgrind-suite:
         name: valgrind memcheck
         code: |
           cd build
+          sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
           valgrind ./test/testexe
 
     - script:
