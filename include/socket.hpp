@@ -193,6 +193,7 @@ public:
 	auto bind(F _fn) -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
 		AddrIPv4 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -225,6 +226,7 @@ public:
 	auto bind(F _fn) -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
 		AddrIPv6 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -257,6 +259,7 @@ public:
 	auto bind(F _fn) -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
 		AddrUnix addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -306,6 +309,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
 		AddrIPv4 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -348,6 +352,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
 		AddrIPv6 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -390,6 +395,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
 		AddrUnix addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		auto res = _fn(addr);
 		if (res >= 1) {
@@ -511,6 +517,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrIPv4 &>()), void()) const
 	{
 		AddrIPv4 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -562,6 +569,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrIPv6 &>()), void()) const
 	{
 		AddrIPv6 addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
@@ -613,6 +621,7 @@ public:
 	  -> decltype(_fn(std::declval<AddrUnix &>()), void()) const
 	{
 		AddrUnix addr;
+		std::memset(&addr, 0, sizeof(addr));
 
 		const auto flags = static_cast<int>(_flags);
 		const auto res   = _fn(addr);
