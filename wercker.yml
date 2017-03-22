@@ -81,7 +81,7 @@ build-gcc-default:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          ./test/testexe
+          sudo ./test/testexe
 
     - script:
         name: generate coverage
@@ -170,7 +170,7 @@ build-clang-default:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          ./test/testexe
+          sudo ./test/testexe
 
 
 build-gcc-5:
@@ -244,7 +244,7 @@ build-gcc-5:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          ./test/testexe
+          sudo ./test/testexe
 
 
 build-gcc-6:
@@ -320,7 +320,7 @@ build-gcc-6:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          ./test/testexe
+          sudo ./test/testexe
 
 
 address-sanitizer:
@@ -397,7 +397,7 @@ address-sanitizer:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          ./test/testexe
+          sudo ./test/testexe
 
 
 valgrind-suite:
@@ -489,32 +489,32 @@ valgrind-suite:
         code: |
           cd build
           sudo setcap "cap_net_admin+ep cap_net_raw+ep" test/testexe
-          valgrind ./test/testexe
+          sudo valgrind ./test/testexe
 
     - script:
         name: valgrind cachegrind
         code: |
           cd build
           sleep 60
-          valgrind --tool=cachegrind ./test/testexe
+          sudo valgrind --tool=cachegrind ./test/testexe
 
     - script:
         name: valgrind massif
         code: |
           cd build
           sleep 60
-          valgrind --tool=massif ./test/testexe
+          sudo valgrind --tool=massif ./test/testexe
 
     - script:
         name: valgrind drd
         code: |
           cd build
           sleep 60
-          valgrind --tool=drd ./test/testexe
+          sudo valgrind --tool=drd ./test/testexe
 
     - script:
         name: valgrind helgrind
         code: |
           cd build
           sleep 60
-          valgrind --tool=helgrind ./test/testexe
+          sudo valgrind --tool=helgrind ./test/testexe
