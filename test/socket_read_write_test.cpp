@@ -189,8 +189,6 @@ TEST(Socket, UNIXReadWrite)
 	EXPECT_NO_THROW(unixClient2.connect(&readTest::unixServerPath2.front()));
 
 	EXPECT_NO_THROW(unixClient2.write(readTest::msg));
-	// EXPECT_EQ(unixClient2.read(4), "readTest::msg"); // udp server doesn't
-	// know who to send to
 
 	tcpServerThreadUnix.join();
 	udpServerThreadUnix.join();
