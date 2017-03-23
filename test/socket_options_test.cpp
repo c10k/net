@@ -95,6 +95,9 @@ TEST(SocketOptions, Linger)
 
 	SockOpt opt2(true, 2);
 	ASSERT_EQ(lin, opt2);
+
+	const auto opt3 = s.getOpt(Opt::LINGER);
+	ASSERT_EQ(lin, opt3);
 }
 
 
@@ -115,7 +118,7 @@ TEST(SocketOptions, DontRoute)
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE, &optval, optlen));
 	auto opt2 = s.getOpt(Opt::DONTROUTE);
-	ASSERT_EQ(0, opt2.getValue());
+	ASSERT_EQ(0, opt2);
 }
 
 
@@ -138,7 +141,7 @@ TEST(SocketOptions, KeepAlive)
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen));
 	auto opt2 = s.getOpt(Opt::KEEPALIVE);
-	ASSERT_EQ(0, opt2.getValue());
+	ASSERT_EQ(0, opt2);
 }
 
 
@@ -159,7 +162,7 @@ TEST(SocketOptions, OOBInline)
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE, &optval, optlen));
 
 	auto opt2 = s.getOpt(Opt::OOBINLINE);
-	ASSERT_EQ(0, opt2.getValue());
+	ASSERT_EQ(0, opt2);
 }
 
 
@@ -180,5 +183,56 @@ TEST(SocketOptions, RCVLOWAT)
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval, optlen));
 
 	auto opt2 = s.getOpt(Opt::RCVLOWAT);
-	ASSERT_EQ(10, opt2.getValue());
+	ASSERT_EQ(10, opt2);
+}
+
+
+TEST(SocketOptions, RCVTIMEO)
+{
+	Socket s(Domain::IPv4, Type::TCP);
+	SockOpt opt(2L, 5000L);
+	s.setOpt(Opt::RCVTIMEO, opt);
+
+	timeval t;
+	socklen_t len = sizeof(t);
+	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_RCVTIMEO, &t, &len));
+
+	// No gurantee about tv_usec to be equal to what is set
+	ASSERT_EQ(t.tv_sec, opt.getTime().first);
+
+	t.tv_sec  = 3;
+	t.tv_usec = 500;
+	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_RCVTIMEO, &t, len));
+
+	SockOpt opt2(3L, 500L);
+	ASSERT_EQ(t, opt2);
+
+	const auto opt3 = s.getOpt(Opt::RCVTIMEO);
+	ASSERT_EQ(t.tv_sec, opt3.getTime().first);
+}
+
+
+TEST(SocketOptions, SNDTIMEO)
+{
+	Socket s(Domain::IPv4, Type::TCP);
+
+	SockOpt opt(2L, 500L);
+	s.setOpt(Opt::SNDTIMEO, opt);
+
+	timeval t;
+	socklen_t len = sizeof(t);
+	EXPECT_EQ(0, getsockopt(s.getSocket(), SOL_SOCKET, SO_SNDTIMEO, &t, &len));
+
+	// No gurantee about tv_usec to be equal to what is set
+	ASSERT_EQ(t.tv_sec, opt.getTime().first);
+
+	t.tv_sec  = 30;
+	t.tv_usec = 1000;
+	EXPECT_EQ(0, setsockopt(s.getSocket(), SOL_SOCKET, SO_SNDTIMEO, &t, len));
+
+	SockOpt opt2(30L, 1000L);
+	ASSERT_EQ(t, opt2);
+
+	const auto opt3 = s.getOpt(Opt::SNDTIMEO);
+	ASSERT_EQ(t.tv_sec, opt3.getTime().first);
 }
