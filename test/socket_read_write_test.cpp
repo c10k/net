@@ -12,15 +12,15 @@ namespace readTest {
 
 const auto msgLen = 15000;
 const std::string msg(readTest::msgLen, 'a');
-const std::string unixServerPath1("/var/unixServerPath1");
-const std::string unixServerPath2("/var/unixServerPath2");
-const std::string unixClientPath1("/var/unixClientPath1");
-const std::string unixClientPath2("/var/unixClientPath2");
+const std::string unixServerPath1("/tmp/unixServerPath10");
+const std::string unixServerPath2("/tmp/unixServerPath20");
+const std::string unixClientPath1("/tmp/unixClientPath10");
+const std::string unixClientPath2("/tmp/unixClientPath20");
 
 void startUNIXServerTCP(const std::string path)
 {
 	Socket unixServer(Domain::UNIX, Type::TCP);
-	EXPECT_NO_THROW(unixServer.start(&path.front()));
+	EXPECT_NO_THROW(unixServer.start(path.c_str()));
 	const auto peer = unixServer.accept();
 	const auto res  = peer.read(readTest::msgLen);
 	if (res == readTest::msg) {
@@ -35,7 +35,7 @@ void startUNIXServerUDP(const std::string path)
 {
 	Socket unixServer(Domain::UNIX, Type::UDP);
 	EXPECT_NO_THROW(unixServer.bind(
-	  [&](AddrUnix &s) { return methods::construct(s, &path.front()); }));
+	  [&](AddrUnix &s) { return methods::construct(s, path.c_str()); }));
 
 	const auto res = unixServer.read(readTest::msgLen);
 	EXPECT_EQ(msg, res);
@@ -174,9 +174,9 @@ TEST(Socket, UNIXReadWrite)
 	Socket unixClient1(Domain::UNIX, Type::TCP);
 	EXPECT_EQ(unixClient1.getType(), Type::TCP);
 	EXPECT_NO_THROW(unixClient1.bind([&](AddrUnix &s) {
-		return methods::construct(s, &readTest::unixClientPath1.front());
+		return methods::construct(s, readTest::unixClientPath1.c_str());
 	}));
-	EXPECT_NO_THROW(unixClient1.connect(&readTest::unixServerPath1.front()));
+	EXPECT_NO_THROW(unixClient1.connect(readTest::unixServerPath1.c_str()));
 
 	EXPECT_NO_THROW(unixClient1.write(readTest::msg));
 	EXPECT_EQ(unixClient1.read(std::string("readTest::msg").size()),
@@ -187,9 +187,9 @@ TEST(Socket, UNIXReadWrite)
 	Socket unixClient2(Domain::UNIX, Type::UDP);
 	EXPECT_EQ(unixClient2.getType(), Type::UDP);
 	EXPECT_NO_THROW(unixClient2.bind([&](AddrUnix &s) {
-		return methods::construct(s, &readTest::unixClientPath2.front());
+		return methods::construct(s, readTest::unixClientPath2.c_str());
 	}));
-	EXPECT_NO_THROW(unixClient2.connect(&readTest::unixServerPath2.front()));
+	EXPECT_NO_THROW(unixClient2.connect(readTest::unixServerPath2.c_str()));
 
 	EXPECT_NO_THROW(unixClient2.write(readTest::msg));
 

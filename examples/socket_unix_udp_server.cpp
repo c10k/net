@@ -10,7 +10,7 @@ int main()
 		std::string serverPath("/tmp/unixServer");
 
 		unixServer.bind([&](AddrUnix &s) {
-			return methods::construct(s, &serverPath.front());
+			return methods::construct(s, serverPath.c_str());
 		});
 
 		const auto res = unixServer.read(12);

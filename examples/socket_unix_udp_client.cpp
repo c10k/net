@@ -11,10 +11,10 @@ int main()
 		std::string serverPath("/tmp/unixServer");
 
 		unixClient.bind([&](AddrUnix &s) {
-			return methods::construct(s, &clientPath.front());
+			return methods::construct(s, clientPath.c_str());
 		});
 
-		unixClient.connect(&serverPath.front());
+		unixClient.connect(serverPath.c_str());
 
 		unixClient.write("hello server");
 	} catch (std::exception &e) {

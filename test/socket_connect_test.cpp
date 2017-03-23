@@ -67,17 +67,17 @@ TEST(Socket, ConnectUnixTCP)
 	std::string unixPathServer("/tmp/unixSocketFileServer7");
 	Socket serverUnixTCP(Domain::UNIX, Type::TCP);
 	std::thread serverThread1(runUnixServer, std::ref(serverUnixTCP),
-	                          &unixPathServer.front());
+	                          unixPathServer.c_str());
 	serverThread1.detach();
 	std::this_thread::sleep_for(2s);
 
 	std::string unixPathClient("/tmp/unixSocketFileClient7");
 	Socket clientUnixTCP(Domain::UNIX, Type::TCP);
 	EXPECT_NO_THROW(clientUnixTCP.bind([&](AddrUnix &s) {
-		return methods::construct(s, &unixPathClient.front());
+		return methods::construct(s, unixPathClient.c_str());
 	}));
 	EXPECT_NO_THROW(clientUnixTCP.connect([&](AddrUnix &s) {
-		return methods::construct(s, &unixPathServer.front());
+		return methods::construct(s, unixPathServer.c_str());
 	}););
 	clientUnixTCP.close();
 }
@@ -87,16 +87,16 @@ TEST(Socket, ConnectUnixUDP)
 	std::string unixPathServer("/tmp/unixSocketFileServer2");
 	Socket serverUnixUDP(Domain::UNIX, Type::UDP);
 	std::thread serverThread1(
-	  [&]() { runUnixServer(serverUnixUDP, &unixPathServer.front()); });
+	  [&]() { runUnixServer(serverUnixUDP, unixPathServer.c_str()); });
 	serverThread1.detach();
 	std::this_thread::sleep_for(1s);
 
 	std::string unixPathClient("/tmp/unixSocketFileClient2");
 	Socket clientUnixUDP(Domain::UNIX, Type::UDP);
 	EXPECT_NO_THROW(clientUnixUDP.bind([&](AddrUnix &s) {
-		return methods::construct(s, &unixPathClient.front());
+		return methods::construct(s, unixPathClient.c_str());
 	}));
 	EXPECT_NO_THROW(clientUnixUDP.connect([&](AddrUnix &s) {
-		return methods::construct(s, &unixPathServer.front());
+		return methods::construct(s, unixPathServer.c_str());
 	}));
 }
