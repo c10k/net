@@ -2,7 +2,6 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include <functional>
-#include <iostream>
 
 
 using namespace net;

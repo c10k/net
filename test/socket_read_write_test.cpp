@@ -122,7 +122,8 @@ TEST(Socket, IPv4ReadWrite)
 	tcpClient1.connect("127.0.0.1", 19000);
 
 	EXPECT_NO_THROW(tcpClient1.write(readTest::msg));
-	EXPECT_EQ(tcpClient1.read(4), "readTest::msg");
+	EXPECT_EQ(tcpClient1.read(std::string("readTest::msg").size()),
+	          "readTest::msg");
 
 	tcpClient1.close();
 
@@ -147,7 +148,8 @@ TEST(Socket, IPv6ReadWrite)
 	tcpClient2.connect("::1", 20000);
 
 	EXPECT_NO_THROW(tcpClient2.write(readTest::msg));
-	EXPECT_EQ(tcpClient2.read(4), "readTest::msg");
+	EXPECT_EQ(tcpClient2.read(std::string("readTest::msg").size()),
+	          "readTest::msg");
 
 	tcpClient2.close();
 
@@ -177,7 +179,8 @@ TEST(Socket, UNIXReadWrite)
 	EXPECT_NO_THROW(unixClient1.connect(&readTest::unixServerPath1.front()));
 
 	EXPECT_NO_THROW(unixClient1.write(readTest::msg));
-	EXPECT_EQ(unixClient1.read(4), "readTest::msg");
+	EXPECT_EQ(unixClient1.read(std::string("readTest::msg").size()),
+	          "readTest::msg");
 
 	unixClient1.close();
 
