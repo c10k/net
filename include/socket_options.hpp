@@ -11,22 +11,54 @@ extern "C" {
 namespace net {
 
 enum class Opt {
+#ifdef SO_BROADCAST
 	BROADCAST = SO_BROADCAST,
-	DEBUG     = SO_DEBUG,
+#endif
+#ifdef SO_DEBUG
+	DEBUG = SO_DEBUG,
+#endif
+#ifdef SO_DONTROUTE
 	DONTROUTE = SO_DONTROUTE,
-	ERROR     = SO_ERROR,
+#endif
+#ifdef SO_ERROR
+	ERROR = SO_ERROR,
+#endif
+#ifdef SO_KEEPALIVE
 	KEEPALIVE = SO_KEEPALIVE,
-	LINGER    = SO_LINGER,
+#endif
+#ifdef SO_LINGER
+	LINGER = SO_LINGER,
+#endif
+#ifdef SO_OOBINLINE
 	OOBINLINE = SO_OOBINLINE,
-	RCVBUF    = SO_RCVBUF,
-	SNDBUF    = SO_SNDBUF,
-	RCVLOWAT  = SO_RCVLOWAT,
-	SNDLOWAT  = SO_SNDLOWAT,
-	RCVTIMEO  = SO_RCVTIMEO,
-	SNDTIMEO  = SO_SNDTIMEO,
+#endif
+#ifdef SO_RCVBUF
+	RCVBUF = SO_RCVBUF,
+#endif
+#ifdef SO_SNDBUF
+	SNDBUF = SO_SNDBUF,
+#endif
+#ifdef SO_RCVLOWAT
+	RCVLOWAT = SO_RCVLOWAT,
+#endif
+#ifdef SO_SNDLOWAT
+	SNDLOWAT = SO_SNDLOWAT,
+#endif
+#ifdef SO_RCVTIMEO
+	RCVTIMEO = SO_RCVTIMEO,
+#endif
+#ifdef SO_SNDTIMEO
+	SNDTIMEO = SO_SNDTIMEO,
+#endif
+#ifdef SO_REUSEADDR
 	REUSEADDR = SO_REUSEADDR,
+#endif
+#ifdef SO_REUSEPORT
 	REUSEPORT = SO_REUSEPORT,
-	TYPE      = SO_TYPE,
+#endif
+#ifdef SO_TYPE
+	TYPE = SO_TYPE,
+#endif
 #ifdef SO_USELOOPBACK
 	USELOOPBACK = SO_USELOOPBACK
 #endif
@@ -42,15 +74,18 @@ class SockOpt final {
 	enum { TIME = 0, LINGER = 1, INT = 2 } type;
 
 	SockOpt(int, int) = delete;
+	SockOpt() = delete;
 
 public:
 	SockOpt(const int _n) : i(_n), type(INT) {}
-	explicit SockOpt(const bool _on, const int _linger) : type(LINGER)
+	SockOpt(const bool _on, const int _linger) : type(LINGER)
 	{
 		l.l_onoff  = _on ? 1 : 0;
 		l.l_linger = _linger;
 	}
-	explicit SockOpt(const long _seconds, const long _microseconds) : type(TIME)
+	SockOpt(const decltype(t.tv_sec) _seconds,
+	        const decltype(t.tv_usec) _microseconds)
+	    : type(TIME)
 	{
 		t.tv_sec  = _seconds;
 		t.tv_usec = _microseconds;
