@@ -85,7 +85,7 @@ void startTCPServerIPv4()
 void startUDPServerIPv6()
 {
 	Socket myServerSocket(Domain::IPv6, Type::UDP);
-	myServerSocket.start("::1", 16000);
+	myServerSocket.start("::1", 16000);  // just binding
 	udpIPv6ServerProcessing(myServerSocket);
 }
 
@@ -93,7 +93,7 @@ void startUDPServerIPv6()
 void startUDPServerIPv4()
 {
 	Socket myServerSocket(Domain::IPv4, Type::UDP);
-	myServerSocket.start("127.0.0.1", 15000);
+	myServerSocket.start("127.0.0.1", 15000);  // just binding
 	udpIPv4ServerProcessing(myServerSocket);
 }
 

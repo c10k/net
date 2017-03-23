@@ -12,6 +12,33 @@ namespace readTest {
 
 const auto msgLen2 = 15000;
 const std::string msg1(readTest::msgLen2, 'a');
+const std::string unixServerPath1("/tmp/unixServerPath5");
+const std::string unixServerPath2("/tmp/unixServerPath6");
+const std::string unixClientPath1("/tmp/unixClientPath5");
+const std::string unixClientPath2("/tmp/unixClientPath6");
+
+void startUNIXServerTCP(const std::string path)
+{
+	Socket unixServer(Domain::UNIX, Type::TCP);
+	unixServer.start(&path.front());
+	const auto peer = unixServer.accept();
+	const auto res  = peer.read(readTest::msgLen2);
+	if (res == readTest::msg1) {
+		peer.write("readTest::msg1");
+	} else {
+		peer.write(" ");
+	}
+	std::this_thread::sleep_for(1s);
+}
+
+void startUNIXServerUDP(const std::string path)
+{
+	Socket unixServer(Domain::UNIX, Type::UDP);
+	unixServer.bind(
+	  [&](AddrUnix &s) { return methods::construct(s, &path.front()); });
+	const auto res = unixServer.read(readTest::msgLen2);
+	EXPECT_EQ(res, readTest::msg1);
+}
 
 void udpIPv4ServerProcessing(Socket &serverSocket)
 {
@@ -90,6 +117,7 @@ TEST(Socket, IPv4ReadWrite)
 	std::this_thread::sleep_for(1s);
 
 	Socket tcpClient1(Domain::IPv4, Type::TCP);
+	EXPECT_EQ(tcpClient1.getType(), Type::TCP);
 	tcpClient1.connect("127.0.0.1", 19000);
 
 	EXPECT_NO_THROW(tcpClient1.write(readTest::msg1));
@@ -98,6 +126,7 @@ TEST(Socket, IPv4ReadWrite)
 	tcpClient1.close();
 
 	Socket udpClient1(Domain::IPv4, Type::UDP);
+	EXPECT_EQ(udpClient1.getType(), Type::UDP);
 	udpClient1.connect("127.0.0.1", 19000);
 	EXPECT_NO_THROW(udpClient1.write(readTest::msg1));
 
@@ -113,6 +142,7 @@ TEST(Socket, IPv6ReadWrite)
 	std::this_thread::sleep_for(1s);
 
 	Socket tcpClient2(Domain::IPv6, Type::TCP);
+	EXPECT_EQ(tcpClient2.getType(), Type::TCP);
 	tcpClient2.connect("::1", 20000);
 
 	EXPECT_NO_THROW(tcpClient2.write(readTest::msg1));
@@ -121,9 +151,45 @@ TEST(Socket, IPv6ReadWrite)
 	tcpClient2.close();
 
 	Socket udpClient2(Domain::IPv6, Type::UDP);
+	EXPECT_EQ(udpClient2.getType(), Type::UDP);
 	udpClient2.connect("::1", 20000);
 	EXPECT_NO_THROW(udpClient2.write(readTest::msg1));
 
 	tcpServerThreadIPv6.join();
 	udpServerThreadIPv6.join();
+}
+
+TEST(Socket, UNIXReadWrite)
+{
+
+	std::thread tcpServerThreadUnix(readTest::startUNIXServerTCP,
+	                                std::ref(readTest::unixServerPath1));
+	// std::thread udpServerThreadUnix(readTest::startUNIXServerUDP,
+	//                                 std::ref(readTest::unixServerPath2));
+	std::this_thread::sleep_for(1s);
+
+	Socket unixClient1(Domain::UNIX, Type::TCP);
+	EXPECT_EQ(unixClient1.getType(), Type::TCP);
+	EXPECT_NO_THROW(unixClient1.bind([&](AddrUnix &s) {
+		return methods::construct(s, &readTest::unixClientPath1.front());
+	}));
+	EXPECT_NO_THROW(unixClient1.connect(&readTest::unixServerPath1.front()));
+
+	EXPECT_NO_THROW(unixClient1.write(readTest::msg1));
+	EXPECT_EQ(unixClient1.read(4), "readTest::msg1");
+
+	unixClient1.close();
+
+	// Socket unixClient2(Domain::UNIX, Type::UDP);
+	// EXPECT_EQ(unixClient2.getType(), Type::UDP);
+	// EXPECT_NO_THROW(unixClient2.bind([&](AddrUnix &s) {
+	// 	return methods::construct(s, &readTest::unixClientPath2.front());
+	// }));
+	// EXPECT_NO_THROW(unixClient2.connect(&readTest::unixServerPath2.front()));
+
+	// EXPECT_NO_THROW(unixClient2.write(readTest::msg1));
+	// EXPECT_EQ(unixClient2.read(4), "readTest::msg1");
+
+	tcpServerThreadUnix.join();
+	// udpServerThreadUnix.join();
 }

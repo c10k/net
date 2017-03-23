@@ -57,11 +57,6 @@ TEST(Socket, Bind)
 		return 1;
 	}));
 
-	// when given callable doesn't fill it's structure object argument.
-	// Socket sock_liar(Domain::IPv4, Type::TCP);
-	// ASSERT_NO_THROW(sock_liar.bind([](AddrIPv4 &s) { return 5; }));
-	// ASSERT_ANY_THROW(sock_liar.connect("127.0.0.1", 15000));
-
 
 	Socket sock_liar_ipv4(Domain::IPv4, Type::TCP);
 	ASSERT_THROW(sock_liar_ipv4.bind([](AddrIPv6 &s) {
@@ -101,4 +96,17 @@ TEST(Socket, Bind)
 		return methods::construct(s, "::::::127.0.0.1", -1300000);
 	}),
 	             std::invalid_argument);
+
+	Socket unixSocket(Domain::UNIX, Type::TCP);
+	std::string unixSocketPath("/tmp/unixSocketFile");
+	unixSocket.bind([&](AddrUnix &s) {
+		return methods::construct(s, unixSocketPath.c_str());
+	});
+	AddrUnix actualUnixSocket;
+	socklen_t actualUnixSocketSize = sizeof(actualUnixSocket);
+	ASSERT_NE(getsockname(unixSocket.getSocket(),
+	                      (sockaddr *) &actualUnixSocket,
+	                      &actualUnixSocketSize),
+	          -1);
+	EXPECT_EQ(actualUnixSocket.sun_path, unixSocketPath);
 }
