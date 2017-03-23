@@ -33,6 +33,37 @@ TEST(SocketOptions, CastError)
 }
 
 
+TEST(SocketOptions, EqualityTest)
+{
+	int value = 1;
+	linger l;
+	l.l_onoff  = 1;
+	l.l_linger = 5;
+	timeval t;
+	t.tv_sec  = 5;
+	t.tv_usec = 500;
+
+	SockOpt opt1(1), opt2(true, 5), opt3(5L, 500L);
+
+	ASSERT_EQ(value, opt1);
+	ASSERT_EQ(value, opt1.getValue());
+	ASSERT_FALSE(l == opt1);
+	ASSERT_FALSE(t == opt1);
+
+	ASSERT_EQ(l, opt2);
+	ASSERT_EQ(l.l_onoff, opt2.getLinger().first);
+	ASSERT_EQ(l.l_linger, opt2.getLinger().second);
+	ASSERT_FALSE(value == opt2);
+	ASSERT_FALSE(t == opt2);
+
+	ASSERT_EQ(t, opt3);
+	ASSERT_EQ(t.tv_sec, opt3.getTime().first);
+	ASSERT_EQ(t.tv_usec, opt3.getTime().second);
+	ASSERT_FALSE(value == opt3);
+	ASSERT_FALSE(l == opt3);
+}
+
+
 TEST(SocketOptions, Broadcast)
 {
 	Socket s4(Domain::IPv4, Type::UDP);
