@@ -6,4 +6,9 @@ testexe = executable('testexe', test_sources,
         include_directories : inc, link_with : netlib,
         dependencies : [gtest])
 
+sodebugtestexe = executable('sodebugtestexe', 'socket_option_debug_test.cpp',
+        include_directories : inc, link_with : netlib,
+        dependencies : [gtest])
+
 test('app test', testexe, args: '--gtest_color=yes')
+test('app test', sodebugtestexe, args: '--gtest_color=yes')
