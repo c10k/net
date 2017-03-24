@@ -103,8 +103,8 @@ void startUNIXServerTCP(const std::string path)
 
 	const auto anotherRes = peer.recv(recvTest::msgLen2, [&](AddrUnix &s) {
 		const auto actualPeerAddr = getPeerInfo(peer);
-		// std::string currentPeerAddr(s.sun_path);
-		// EXPECT_EQ(actualPeerAddr, currentPeerAddr);
+		std::string currentPeerAddr(s.sun_path);
+		EXPECT_EQ(actualPeerAddr, currentPeerAddr);
 	});
 	if (anotherRes == recvTest::msg2) {
 		peer.write("recvTest::msg2");
@@ -122,7 +122,8 @@ void startUNIXServerUDP(const std::string path)
 	  [&](AddrUnix &s) { return methods::construct(s, path.c_str()); }));
 
 	const auto res = unixServer.recv(recvTest::msgLen2, [](AddrUnix &s) {
-		// EXPECT_EQ("/var/unixClientPath5", s.sun_path);
+		std::string currentPeerAddr(s.sun_path);
+		EXPECT_EQ(unixClientPath2, currentPeerAddr);
 	});
 	EXPECT_EQ(msg1, res);
 }

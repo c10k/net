@@ -69,7 +69,7 @@ TEST(Socket, ConnectUnixTCP)
 	std::thread serverThread1(runUnixServer, std::ref(serverUnixTCP),
 	                          unixPathServer.c_str());
 	serverThread1.detach();
-	std::this_thread::sleep_for(2s);
+	std::this_thread::sleep_for(1s);
 
 	std::string unixPathClient("/tmp/unixSocketFileClient7");
 	Socket clientUnixTCP(Domain::UNIX, Type::TCP);
