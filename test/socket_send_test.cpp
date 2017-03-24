@@ -55,15 +55,7 @@ void tcpServerProcessing(Socket &serverSocket)
 		recvd += msg.size();
 	}
 	auto response = std::to_string(recvd);
-	peer.send(response);
-
-	recvd = 0;
-	while (!(recvd >= sendTest::msgLen)) {
-		auto msg = peer.read(1024);
-		recvd += msg.size();
-	}
-	response = std::to_string(recvd);
-	peer.send(response);
+	peer.write(response);
 
 	recvd = 0;
 	while (!(recvd >= sendTest::msgLen)) {
@@ -115,9 +107,6 @@ TEST(Socket, IPv4Send)
 	tcpClient1.connect("127.0.0.1", 15000);
 	EXPECT_NO_THROW(tcpClient1.send(sendTest::someString));
 	EXPECT_EQ(tcpClient1.read(5), std::to_string(sendTest::msgLen));
-	EXPECT_NO_THROW(
-	  tcpClient1.send(sendTest::someString, [](AddrIPv4 &s) { return 5; }));
-	EXPECT_EQ(tcpClient1.read(5), std::to_string(sendTest::msgLen));
 	EXPECT_NO_THROW(tcpClient1.send(sendTest::someString, [](AddrIPv4 &s) {
 		s.sin_family      = AF_INET;
 		s.sin_port        = htons(15000);
@@ -146,9 +135,6 @@ TEST(Socket, IPv6Send)
 	Socket tcpClient2(Domain::IPv6, Type::TCP);
 	tcpClient2.connect("::1", 16000);
 	EXPECT_NO_THROW(tcpClient2.send(sendTest::someString));
-	EXPECT_EQ(tcpClient2.read(5), std::to_string(sendTest::msgLen));
-	EXPECT_NO_THROW(
-	  tcpClient2.send(sendTest::someString, [](AddrIPv6 &s) { return 5; }));
 	EXPECT_EQ(tcpClient2.read(5), std::to_string(sendTest::msgLen));
 	EXPECT_NO_THROW(tcpClient2.send(sendTest::someString, [](AddrIPv6 &s) {
 		s.sin6_family = AF_INET6;
