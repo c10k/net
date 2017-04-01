@@ -12,6 +12,6 @@ int main()
 		s.send("Hello World!");
 
 	} catch (std::exception &e) {
-		std::cerr << e.what() << "\n";
+		std::cerr << e.what() << '\n';
 	}
 }

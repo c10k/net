@@ -7,12 +7,14 @@ int main()
 {
 	try {
 		Socket s(Domain::IPv4, Type::TCP);
-		s.start("0.0.0.0", 24000);
+		s.start("127.0.0.1", 24001);
 
-		while (1) {
+		while (true) {
 			const auto peer = s.accept();
-			const auto msg  = peer.recv(15);
-			std::cout << msg << '\n';
+			if (!fork()) {
+				std::cout << peer.recv(10) << '\n';
+				return 0;
+			}
 		}
 	} catch (std::exception &e) {
 		std::cerr << e.what() << '\n';

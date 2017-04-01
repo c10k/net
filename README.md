@@ -22,12 +22,12 @@ int main()
         Socket s(Domain::IPv4, Type::TCP);
         s.start("127.0.0.1", 24000);
         while (true) {
-            auto peer = s.accept();
-            auto msg  = peer.recv(15);
-            std::cout << msg << "\n";
+            const auto peer = s.accept();
+            const auto msg  = peer.recv(15);
+            std::cout << msg << '\n';
         }
     } catch (std::exception &e) {
-        std::cerr << e.what() << "\n";
+        std::cerr << e.what() << '\n';
     }
 }
 ```

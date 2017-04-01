@@ -97,6 +97,7 @@ TEST(Socket, Bind)
 	}),
 	             std::invalid_argument);
 
+
 	Socket unixSocket(Domain::UNIX, Type::TCP);
 	std::string unixSocketPath("/tmp/unixSocketFile");
 	unixSocket.bind([&](AddrUnix &s) {
@@ -104,9 +105,9 @@ TEST(Socket, Bind)
 	});
 	AddrUnix actualUnixSocket;
 	socklen_t actualUnixSocketSize = sizeof(actualUnixSocket);
-	ASSERT_NE(getsockname(unixSocket.getSocket(),
-	                      (sockaddr *) &actualUnixSocket,
-	                      &actualUnixSocketSize),
-	          -1);
+	ASSERT_NE(
+	  getsockname(unixSocket.getSocket(), (sockaddr *) &actualUnixSocket,
+	              &actualUnixSocketSize),
+	  -1);
 	EXPECT_EQ(actualUnixSocket.sun_path, unixSocketPath);
 }
