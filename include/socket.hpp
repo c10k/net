@@ -26,6 +26,7 @@ private:
 	int sockfd;
 	Domain sock_domain;
 	Type sock_type;
+	bool isClosed = false;
 
 
 	/**
@@ -850,11 +851,11 @@ public:
 	* @access public
 	* Unlinks the unix socket path.
 	*/
-	void unlink() const noexcept
+	bool unlink() const noexcept
 	{
-		if (sock_domain == Domain::UNIX) {
-			::unlink(unix.sun_path);
-		}
+		return (sock_domain == Domain::UNIX && !isClosed)
+		  ? ::unlink(unix.sun_path) == 0
+		  : false;
 	}
 
 
@@ -863,15 +864,16 @@ public:
 	* @access public
 	* Closes the Socket for terminating connection.
 	*/
-	void close() const noexcept { ::close(sockfd); }
-
-
-	~Socket()
+	bool close() const noexcept
 	{
-		if (sock_domain == Domain::UNIX) {
-			::unlink(unix.sun_path);
-		}
-		::close(sockfd);
+		return (!isClosed) ? ::close(sockfd) == 0 : false;
+	}
+
+
+	~Socket() noexcept
+	{
+		unlink();
+		close();
 	}
 };
 }

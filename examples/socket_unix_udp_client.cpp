@@ -18,8 +18,6 @@ int main()
 
 		unixClient.write("hello server");
 	} catch (std::exception &e) {
-		std::cout << "  Something unexpected happened: " << e.what() << '\n';
+		std::cout << e.what() << '\n';
 	}
-
-	return 0;
 }

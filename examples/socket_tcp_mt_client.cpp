@@ -15,9 +15,10 @@ void connect_send()
 		s.connect("127.0.0.1", 24001);
 		s.send("123456789");
 	} catch (std::exception &e) {
-		std::cerr << e.what() << "\n";
+		std::cerr << e.what() << '\n';
 	}
 }
+
 
 int main()
 {

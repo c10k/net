@@ -13,15 +13,18 @@ bool accepted = false;
 
 void worker_thread(Socket &s)
 {
-	std::unique_lock<std::mutex> lock(m);
-	const auto peer = s.accept();
-	accepted        = true;
-	lock.unlock();
-	cv.notify_one();
-
-	// do some work
-	std::cout << peer.recv(10) << std::endl;
+	try {
+		const auto peer = s.accept();
+		std::unique_lock<std::mutex> lock(m);
+		accepted = true;
+		lock.unlock();
+		cv.notify_one();
+		std::cout << peer.recv(10) << '\n';
+	} catch (std::exception &e) {
+		std::cerr << e.what() << '\n';
+	}
 }
+
 
 int main()
 {
@@ -36,6 +39,6 @@ int main()
 			accepted = false;
 		}
 	} catch (std::exception &e) {
-		std::cerr << e.what() << "\n";
+		std::cerr << e.what() << '\n';
 	}
 }

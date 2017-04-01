@@ -18,8 +18,6 @@ int main()
 		std::cout << "Some client sent: " << res << '\n';
 
 	} catch (std::exception &e) {
-		std::cout << "  Something unexpected happened: " << e.what() << '\n';
+		std::cout << e.what() << '\n';
 	}
-
-	return 0;
 }
