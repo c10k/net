@@ -36,6 +36,7 @@ Socket::Socket(const int _sockfd, Domain _domain, Type _type, const void *_addr)
 		default: store.ss_family = static_cast<int>(sock_domain);
 	}
 
+	sock_type = _type;
 	std::memcpy(ptr, _addr, size);
 }
 
