@@ -140,6 +140,8 @@ public:
 		sock_domain = s.sock_domain;
 		sock_type   = s.sock_type;
 
+		s.sockfd = -1;
+
 		switch (s.sock_domain) {
 			case Domain::IPv4: ipv4 = s.ipv4; break;
 			case Domain::IPv6: ipv6 = s.ipv6; break;
