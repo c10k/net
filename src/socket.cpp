@@ -82,21 +82,27 @@ void Socket::connect(const char _addr[], const int _port, bool *_errorNB)
 	try {
 		switch (sock_domain) {
 			case Domain::IPv4:
-				connect([&](AddrIPv4 &s) {
-					return net::methods::construct(s, _addr, _port);
-				}, _errorNB);
+				connect(
+				  [&](AddrIPv4 &s) {
+					  return net::methods::construct(s, _addr, _port);
+				  },
+				  _errorNB);
 				break;
 
 			case Domain::IPv6:
-				connect([&](AddrIPv6 &s) {
-					return net::methods::construct(s, _addr, _port);
-				}, _errorNB);
+				connect(
+				  [&](AddrIPv6 &s) {
+					  return net::methods::construct(s, _addr, _port);
+				  },
+				  _errorNB);
 				break;
 
 			case Domain::UNIX:
-				connect([&](AddrUnix &s) {
-					return net::methods::construct(s, _addr);
-				}, _errorNB);
+				connect(
+				  [&](AddrUnix &s) {
+					  return net::methods::construct(s, _addr);
+				  },
+				  _errorNB);
 				break;
 
 			default: throw std::invalid_argument("Socket type not supported");

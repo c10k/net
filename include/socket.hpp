@@ -15,7 +15,7 @@ namespace net {
 * Uses socket domains from domain enum in SF namespace from socket_family.hpp
 * Uses socket types from type enum in SF namespace from socket_family.hpp
 */
-class Socket final {
+class Socket {
 private:
 	union {
 		AddrStore store;
@@ -82,21 +82,75 @@ private:
 		return recvd;
 	}
 
-
 	/**
-	* @construct Socket
-	* @access private
-	* @param {int} _sockfd Descriptor representing a socket.
-	* @param {Domain} _domain Socket domain.
-	* @param {Type} _domain Socket type.
-	* @param {void *} _addr Pointer to initialize appropriate member of Union of
-	* net::Socket.
-	*/
+	    * @construct Socket
+	    * @access private
+	    * @param {int} _sockfd Descriptor representing a socket.
+	    * @param {Domain} _domain Socket domain.
+	    * @param {Type} _domain Socket type.
+	    * @param {void *} _addr Pointer to initialize appropriate member of
+	    * Union of net::Socket.
+	    */
 	Socket(const int, Domain, Type, const void *);
 
 	Socket(const Socket &) = delete;
 	Socket &operator=(const Socket &) = delete;
 
+protected:
+	/**
+	        * @method reset
+	        * @access protected
+	        * @param {int} _sockfd Descriptor representing a socket.
+	        * @param {Domain} _domain Socket domain.
+	        * @param {Type} _domain Socket type.
+	        * @param {void *} _addr Pointer to initialize appropriate member of
+	        * Union of net::Socket.
+	        *
+	        * Resets the socket according to the given params.
+	        */
+	Socket &reset(const int _sockfd, Domain _domain, Type _type,
+	              const void *_addr)
+	{
+		sockfd      = _sockfd;
+		sock_domain = _domain;
+		sock_type   = _type;
+
+		std::memset(&store, 0, sizeof(store));
+
+		void *ptr = &store;
+		auto size = sizeof(store);
+
+		switch (sock_domain) {
+			case Domain::IPv4:
+				ipv4.sin_family = AF_INET;
+
+				ptr  = &ipv4;
+				size = sizeof(ipv4);
+				break;
+
+			case Domain::IPv6:
+				ipv6.sin6_family = AF_INET6;
+
+				ptr  = &ipv6;
+				size = sizeof(ipv6);
+				break;
+
+			case Domain::UNIX:
+				unix.sun_family = AF_UNIX;
+
+				ptr  = &unix;
+				size = sizeof(unix);
+				break;
+
+			default: store.ss_family = static_cast<int>(sock_domain);
+		}
+
+		std::memcpy(ptr, _addr, size);  // DOUBT: what would happen on:
+		// std::memcpy(&store, _addr,
+		// sizeof(store))
+
+		return *this;
+	}
 
 public:
 	/**

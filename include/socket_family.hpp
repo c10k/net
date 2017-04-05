@@ -4,6 +4,8 @@
 #include <mutex>
 #include <cstring>
 #include <utility>
+#include <random>
+#include <tuple>
 #include "socket_options.hpp"
 
 extern "C" {
@@ -169,6 +171,84 @@ namespace methods {
 		_addrStruct.sun_family = AF_UNIX;
 		std::strncpy(_addrStruct.sun_path, _addr, 108);
 		return 1;
+	}
+
+	/**
+	    * @function IpAndPortParser
+	    * Parses the given string for ip address and port.
+	    * '*' in ip address's place will mean default ipv4 address.
+	    * ':' in ip address's place will mean default ipv6 address.
+	    * '*' in port's place will mean random port.
+	    *
+	    * @param {std::string} String to parse ip address and port from.
+	    * @returns {std::tuple<Domain, std::string, int>} Returns domain of the
+	    * parsed ip address, the parsed ip address and the parsed port.
+	    */
+	inline std::tuple<Domain, std::string, int>
+	IpAndPortParser(const std::string &s)
+	{
+		try {
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_int_distribution<> dis(1, 65534);
+
+			int portToBe = dis(gen);
+			Domain domainToBe;
+			auto lastColonPos = s.find_last_of(':');
+
+			if (lastColonPos != std::string::npos) {
+				if (!(s[lastColonPos + 1] == '*'
+				      && lastColonPos + 1 == s.size() - 1)) {
+					auto port = std::stoi(s.substr(lastColonPos + 1));
+					if (0 < port && port < 65535) {
+						portToBe = port;
+					} else {
+						throw std::invalid_argument("Port not valid");
+					}
+				}
+			} else {
+				throw std::invalid_argument("Couldn't parse Address");
+			}
+
+			std::string ipToBe = s.substr(0, lastColonPos);
+			auto firstColonPos = s.find_first_of(':');
+
+			if (firstColonPos == lastColonPos) {
+				domainToBe = Domain::IPv4;
+				if (ipToBe != "*") {
+					char buff[100];
+					auto res = inet_pton(AF_INET, ipToBe.c_str(), buff);
+					if (res == 1) {
+						char str[INET_ADDRSTRLEN];
+						inet_ntop(AF_INET, buff, str, INET_ADDRSTRLEN);
+						ipToBe = str;
+					} else if (res == 0) {
+						throw std::invalid_argument("Ip address not valid");
+					}
+				} else {
+					ipToBe = "127.0.0.1";
+				}
+			} else {
+				domainToBe = Domain::IPv6;
+				if (ipToBe != ":") {
+					char buff[100];
+					int res = inet_pton(AF_INET6, ipToBe.c_str(), buff);
+					if (res == 1) {
+						char str[INET6_ADDRSTRLEN];
+						inet_ntop(AF_INET6, buff, str, INET6_ADDRSTRLEN);
+						ipToBe = str;
+					} else if (res == 0) {
+						throw std::invalid_argument("Ip address not valid");
+					}
+				} else {
+					ipToBe = "::1";
+				}
+			}
+			return std::make_tuple(domainToBe, ipToBe, portToBe);
+
+		} catch (...) {
+			throw;
+		}
 	}
 }
 }
