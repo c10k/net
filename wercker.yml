@@ -20,12 +20,14 @@ build-gcc-default:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
           locale-gen en_US.UTF-8
           dpkg-reconfigure locales
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install gcc
@@ -103,12 +105,14 @@ build-clang-default:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
           locale-gen en_US.UTF-8
           dpkg-reconfigure locales
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install clang
@@ -179,6 +183,8 @@ build-gcc-5:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
@@ -187,7 +193,7 @@ build-gcc-5:
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install gcc 5
@@ -252,6 +258,8 @@ build-gcc-6:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
@@ -260,7 +268,7 @@ build-gcc-6:
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install gcc 6
@@ -327,12 +335,14 @@ address-sanitizer:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
           locale-gen en_US.UTF-8
           dpkg-reconfigure locales
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install clang
@@ -403,6 +413,8 @@ valgrind-suite:
         name: update system
         code: |
           export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
           export LC_ALL=en_US.UTF-8
@@ -411,7 +423,7 @@ valgrind-suite:
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          apt-get -y update && apt-get -y upgrade
+
 
     - script:
         name: install gcc 6
