@@ -15,7 +15,7 @@ namespace net {
 * Uses socket domains from domain enum in SF namespace from socket_family.hpp
 * Uses socket types from type enum in SF namespace from socket_family.hpp
 */
-class Socket final {
+class Socket {
 private:
 	union {
 		AddrStore store;
@@ -849,7 +849,7 @@ public:
 
 
 	/**
-	* method unlink
+	* @method unlink
 	* @access public
 	* Unlinks the unix socket path.
 	*/
@@ -862,7 +862,7 @@ public:
 
 
 	/**
-	* method close
+	* @method close
 	* @access public
 	* Closes the Socket for terminating connection.
 	*/
