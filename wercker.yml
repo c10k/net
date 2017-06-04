@@ -328,6 +328,84 @@ build-gcc-6:
           ./test/testexe
 
 
+build-gcc-7:
+
+  steps:
+
+    - script:
+        name: update system
+        code: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get -y update && apt-get -y upgrade
+          apt-get install locales
+          export LANGUAGE=en_US.UTF-8
+          export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
+          apt-get -yq update && apt-get -yq upgrade
+          apt-get install -yq software-properties-common
+          add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          apt-get -y update && apt-get -y upgrade
+
+
+    - script:
+        name: install gcc 7
+        code: |
+          apt-get -y install gcc-7 g++-7
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100
+          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 100
+          apt-get -y install build-essential
+          update-alternatives --config gcc
+          update-alternatives --config g++
+
+    - script:
+        name: echo gcc version
+        code: |
+          gcc --version
+          g++ --version
+
+    - script:
+        name: install dependencies
+        code: |
+          apt-get -y install git curl wget python3 python3-pip pkg-config
+          apt-get -y install libgtest-dev
+
+    - script:
+        name: install ninja build
+        code: |
+          git clone git://github.com/ninja-build/ninja.git && cd ninja
+          git checkout release
+          python3 ./configure.py --bootstrap
+          cp ninja /usr/bin/ninja
+          cd ../
+          rm -rf ninja/
+
+    - script:
+        name: install meson
+        code: |
+          pip3 install meson
+
+    - script:
+        name: echo meson and ninja versions
+        code: |
+          meson --version
+          ninja --version
+
+    - script:
+        name: build project
+        code: |
+          mkdir build && cd build
+          meson ..
+          ninja
+
+    - script:
+        name: test project
+        code: |
+          cd build
+          ./test/testexe
+
+
 address-sanitizer:
 
   steps:
