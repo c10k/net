@@ -298,6 +298,19 @@ void Socket::setOpt(Opt _opType, SockOpt _opValue) const
 			break;
 		}
 
+		case Opt::MAXSEG:
+		case Opt::NODELAY: {
+			if (_opValue.getType() != type::INT) {
+				throw std::invalid_argument("Invalid socket option");
+			}
+
+			const auto i        = _opValue.getValue();
+			const socklen_t len = sizeof(i);
+
+			res = setsockopt(sockfd, IPPROTO_TCP, optname, &i, len);
+			break;
+		}
+
 		default: {
 			if (_opValue.getType() != type::INT) {
 				throw std::invalid_argument("Invalid socket option");
@@ -306,6 +319,7 @@ void Socket::setOpt(Opt _opType, SockOpt _opValue) const
 			const socklen_t len = sizeof(i);
 
 			res = setsockopt(sockfd, SOL_SOCKET, optname, &i, len);
+			break;
 		}
 	}
 
@@ -344,6 +358,19 @@ SockOpt Socket::getOpt(Opt _opType) const
 				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
 			}
 			SockOpt opt(t.tv_sec, t.tv_usec);
+			return opt;
+		}
+
+		case Opt::MAXSEG:
+		case Opt::NODELAY: {
+			int i;
+			socklen_t len  = sizeof(i);
+			const auto res = getsockopt(sockfd, IPPROTO_TCP, optname, &i, &len);
+			const auto currErrno = errno;
+			if (res == -1) {
+				throw std::runtime_error(net::methods::getErrorMsg(currErrno));
+			}
+			SockOpt opt(i);
 			return opt;
 		}
 
