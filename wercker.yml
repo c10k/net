@@ -22,6 +22,9 @@ build-gcc-default:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -y update && apt-get -y upgrade
 
     - script:
@@ -102,6 +105,9 @@ build-clang-default:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -y update && apt-get -y upgrade
 
     - script:
@@ -175,6 +181,9 @@ build-gcc-5:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -245,6 +254,9 @@ build-gcc-6:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
@@ -317,6 +329,9 @@ address-sanitizer:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -y update && apt-get -y upgrade
 
     - script:
@@ -390,6 +405,9 @@ valgrind-suite:
           export DEBIAN_FRONTEND=noninteractive
           export LANGUAGE=en_US.UTF-8
           export LANG=en_US.UTF-8
+          export LC_ALL=en_US.UTF-8
+          locale-gen en_US.UTF-8
+          dpkg-reconfigure locales
           apt-get -yq update && apt-get -yq upgrade
           apt-get install -yq software-properties-common
           add-apt-repository ppa:ubuntu-toolchain-r/test -y
