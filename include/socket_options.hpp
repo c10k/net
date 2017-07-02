@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <typeinfo>
+#include <netinet/tcp.h>
 
 extern "C" {
 #include <sys/socket.h>
@@ -60,7 +61,13 @@ enum class Opt {
 	TYPE = SO_TYPE,
 #endif
 #ifdef SO_USELOOPBACK
-	USELOOPBACK = SO_USELOOPBACK
+	USELOOPBACK = SO_USELOOPBACK,
+#endif
+#ifdef TCP_MAXSEG
+	MAXSEG = TCP_MAXSEG,
+#endif
+#ifdef TCP_NODELAY
+	NODELAY = TCP_NODELAY
 #endif
 };
 

@@ -189,6 +189,7 @@ int main()
 
 
 # TODO
+- [ ] Proper namespacing in socket options
 - [ ] Add more unit tests, increase coverage
 - [ ] Add examples for non-blocking socket operations
 - [ ] Add support for more protocols other than TCP, UDP, UNIX

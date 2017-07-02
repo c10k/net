@@ -93,8 +93,8 @@ TEST(SocketOptions, Broadcast)
 	EXPECT_EQ(
 	  0, setsockopt(s6.getSocket(), SOL_SOCKET, SO_BROADCAST, &optval, optlen));
 
-	auto opt4 = s4.getOpt(Opt::BROADCAST);
-	auto opt6 = s6.getOpt(Opt::BROADCAST);
+	const auto opt4 = s4.getOpt(Opt::BROADCAST);
+	const auto opt6 = s6.getOpt(Opt::BROADCAST);
 
 	ASSERT_EQ(0, opt4.getValue());
 	ASSERT_EQ(0, opt6.getValue());
@@ -148,7 +148,7 @@ TEST(SocketOptions, DontRoute)
 
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_DONTROUTE, &optval, optlen));
-	auto opt2 = s.getOpt(Opt::DONTROUTE);
+	const auto opt2 = s.getOpt(Opt::DONTROUTE);
 	ASSERT_EQ(0, opt2);
 }
 
@@ -171,7 +171,7 @@ TEST(SocketOptions, KeepAlive)
 
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_KEEPALIVE, &optval, optlen));
-	auto opt2 = s.getOpt(Opt::KEEPALIVE);
+	const auto opt2 = s.getOpt(Opt::KEEPALIVE);
 	ASSERT_EQ(0, opt2);
 }
 
@@ -192,7 +192,7 @@ TEST(SocketOptions, OOBInline)
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_OOBINLINE, &optval, optlen));
 
-	auto opt2 = s.getOpt(Opt::OOBINLINE);
+	const auto opt2 = s.getOpt(Opt::OOBINLINE);
 	ASSERT_EQ(0, opt2);
 }
 
@@ -213,7 +213,7 @@ TEST(SocketOptions, RCVLOWAT)
 	ASSERT_EQ(
 	  0, setsockopt(s.getSocket(), SOL_SOCKET, SO_RCVLOWAT, &optval, optlen));
 
-	auto opt2 = s.getOpt(Opt::RCVLOWAT);
+	const auto opt2 = s.getOpt(Opt::RCVLOWAT);
 	ASSERT_EQ(10, opt2);
 }
 
@@ -266,4 +266,35 @@ TEST(SocketOptions, SNDTIMEO)
 
 	const auto opt3 = s.getOpt(Opt::SNDTIMEO);
 	ASSERT_EQ(t.tv_sec, opt3.getTime().first);
+}
+
+
+TEST(SocketOptions, MAXSEG)
+{
+	// This option ignores any value being set, atleast on my machine!
+	Socket s(Domain::IPv4, Type::TCP);
+	SockOpt opt(1024);
+	ASSERT_NO_THROW(s.setOpt(Opt::MAXSEG, opt));
+	ASSERT_NO_THROW(s.getOpt(Opt::MAXSEG));
+}
+
+
+TEST(SocketOptions, NODELAY)
+{
+	Socket s(Domain::IPv4, Type::TCP);
+
+	int optval;
+	socklen_t optlen = sizeof(optval);
+
+	SockOpt opt(1);
+	s.setOpt(Opt::NODELAY, opt);
+	ASSERT_EQ(
+	  0, getsockopt(s.getSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, &optlen));
+	ASSERT_EQ(1, optval);
+	optval = 0;
+
+	ASSERT_EQ(
+	  0, setsockopt(s.getSocket(), IPPROTO_TCP, TCP_NODELAY, &optval, optlen));
+	const auto opt2 = s.getOpt(Opt::NODELAY);
+	ASSERT_EQ(0, opt2);
 }
