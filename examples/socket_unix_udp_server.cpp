@@ -5,19 +5,19 @@ using namespace net;
 
 int main()
 {
-	try {
-		Socket unixServer(Domain::UNIX, Type::UDP);
-		std::string serverPath("/tmp/unixServer");
+    try {
+        Socket unixServer(Domain::UNIX, Type::UDP);
+        std::string serverPath("/tmp/unixServer");
 
-		unixServer.bind([&](AddrUnix &s) {
-			return methods::construct(s, serverPath.c_str());
-		});
+        unixServer.bind([&](AddrUnix &s) {
+            return methods::construct(s, serverPath.c_str());
+        });
 
-		const auto res = unixServer.read(12);
+        const auto res = unixServer.read(12);
 
-		std::cout << "Some client sent: " << res << '\n';
+        std::cout << "Some client sent: " << res << '\n';
 
-	} catch (std::exception &e) {
-		std::cout << e.what() << '\n';
-	}
+    } catch (std::exception &e) {
+        std::cout << e.what() << '\n';
+    }
 }

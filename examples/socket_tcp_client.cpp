@@ -5,13 +5,13 @@ using namespace net;
 
 int main()
 {
-	try {
+    try {
 
-		Socket s(Domain::IPv4, Type::TCP);
-		s.connect("0.0.0.0", 24000);
-		s.send("Hello World!");
+        Socket s(Domain::IPv4, Type::TCP);
+        s.connect("0.0.0.0", 24000);
+        s.send("Hello World!");
 
-	} catch (std::exception &e) {
-		std::cerr << e.what() << '\n';
-	}
+    } catch (std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
 }
