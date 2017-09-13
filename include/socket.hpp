@@ -11,7 +11,7 @@ namespace net {
 
 /**
 * @class net::Socket
-* Socket class to create Berkeley sockets.
+* @desc Socket class to create Berkeley sockets.
 * Uses socket domains from domain enum in SF namespace from socket_family.hpp
 * Uses socket types from type enum in SF namespace from socket_family.hpp
 */
@@ -32,8 +32,8 @@ private:
 	/**
 	* @method low_write
 	* @access private
-	* Writes given _msg using _sockfd by calling _fn with args having flags and
-	* destination socket address.
+	* @desc Writes given _msg using _sockfd by calling _fn with args having
+	* flags and destination socket address.
 	*
 	* @param {callable} _fn Some callable that writes using socket descriptor.
 	* @param {string} _msg Msg to write on sockfd.
@@ -61,8 +61,8 @@ private:
 	/**
 	* @method low_read
 	* @access private
-	* Reads using sockfd by calling _fn  with args having flags and destination
-	* socket address.
+	* @desc Reads using sockfd by calling _fn  with args having flags and
+	* destination socket address.
 	*
 	* @param {callable} _fn Some callable that reads using socket descriptor.
 	* @param {string} _str String to store the data.
@@ -130,7 +130,7 @@ public:
 
 
 	/**
-	* @construct net::Socket using another net::Socket.
+	* @construct net::Socket
 	* @access public
 	* @param {Socket} s Rvalue of type socket.
 	*/
@@ -155,7 +155,7 @@ public:
 	/**
 	* @method getSocket
 	* @access public
-	* Get the socket descriptor in net::Socket.
+	* @desc Get the socket descriptor in net::Socket.
 	*
 	* @returns {int} Socket descriptor for net::Socket.
 	*/
@@ -165,7 +165,7 @@ public:
 	/**
 	* @method getDomain
 	* @access public
-	* Get the Domain type of Socket.
+	* @desc Get the Domain type of Socket.
 	*
 	* @returns {Domain} for net::Socket.
 	*/
@@ -175,7 +175,7 @@ public:
 	/**
 	* @method getType
 	* @access public
-	* Get the Protocol Type of Socket.
+	* @desc Get the Protocol Type of Socket.
 	*
 	* @returns {Type} for net::Socket.
 	*/
@@ -185,10 +185,10 @@ public:
 	/**
 	* @method bind
 	* @access public
-	* Binds net::Socket to local address if successful else if Address argument
-	* is invalid then throws invalid_argument exception
-	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill AddrIPv4 object.
+	* @desc Binds net::Socket to local address if successful else if Address
+	* argument is invalid then throws invalid_argument exception else throws
+	* runtime_error exception signalling that bind failed. Invokes the callable
+	* provided to fill AddrIPv4 object.
 	*
 	* @param {callable} _fn Some callable that takes arg of type AddrIPv4.
 	*/
@@ -217,10 +217,10 @@ public:
 	/**
 	* @method bind
 	* @access public
-	* Binds net::Socket to local address if successful else if Address argument
-	* is invalid then throws invalid_argument exception
-	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill AddrIPv6 object.
+	* @desc Binds net::Socket to local address if successful else if Address
+	* argumentis invalid then throws invalid_argument exception else throws
+	* runtime_error exception signalling that bind failed. Invokes the callable
+	* provided to fill AddrIPv6 object.
 	*
 	* @param {callable} _fn Some callable that takes arg of type AddrIPv6.
 	*/
@@ -249,10 +249,10 @@ public:
 	/**
 	* @method bind
 	* @access public
-	* Binds net::Socket to local address if successful else if Address argument
-	* is invalid then throws invalid_argument exception
-	* else throws runtime_error exception signalling that bind failed. Invokes
-	* the callable provided to fill AddrUnix object.
+	* @desc Binds net::Socket to local address if successful else if Address
+	* argument is invalid then throws invalid_argument exception else throws
+	* runtime_error exception signalling that bind failed. Invokes the callable
+	* provided to fill AddrUnix object.
 	*
 	* @param {callable} _fn Some callable that takes arg of type AddrUnix.
 	*/
@@ -281,8 +281,8 @@ public:
 	/**
 	* @method connect
 	* @access public
-	* Connects net::Socket to address _addr:_port if successful else throws
-	* invalid_argument exception.
+	* @desc Connects net::Socket to address _addr:_port if successful else
+	* throws invalid_argument exception.
 	*
 	* @param {char []} _addr Ip address in case of ipv4 or ipv6 domain, and Path
 	* in case of unix domain.
@@ -295,8 +295,8 @@ public:
 	/**
 	* @method connect
 	* @access public
-	* Connects net::Socket to ipv4 peer if successful else throws runtime_error
-	* exception.
+	* @desc Connects net::Socket to ipv4 peer if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
@@ -336,8 +336,8 @@ public:
 	/**
 	* @method connect
 	* @access public
-	* Connects net::Socket to ipv6 peer if successful else throws runtime_error
-	* exception.
+	* @desc Connects net::Socket to ipv6 peer if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
@@ -378,7 +378,7 @@ public:
 	/**
 	* @method connect
 	* @access public
-	* Connects net::Socket to unix socket peer if successful else throws
+	* @desc Connects net::Socket to unix socket peer if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -420,9 +420,8 @@ public:
 	/**
 	* @method start
 	* @access public
-	* Starts the net::Socket in listen mode on given ip address and given port
-	* with given backlog if successful
-	* else throws runtime_error exception.
+	* @desc Starts the net::Socket in listen mode on given ip address and given
+	* port with given backlog if successful else throws runtime_error exception.
 	* Throws invalid_argument exception if given ip address or port are not
 	* valid.
 	*
@@ -437,8 +436,8 @@ public:
 	/**
 	* @method accept
 	* @access public
-	* Returns Socket object from connected sockets queue if successful else
-	* throws runtime_error exception.
+	* @desc Returns Socket object from connected sockets queue if successful
+	* else throws runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	*
@@ -451,8 +450,8 @@ public:
 	/**
 	* @method write
 	* @access public
-	* Writes given string to Socket if successful else throws runtime_error
-	* exception.
+	* @desc Writes given string to Socket if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	*
@@ -465,7 +464,7 @@ public:
 	/**
 	* @method read
 	* @access public
-	* Reads given number of bytes using Socket if successful else throws
+	* @desc Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -480,8 +479,8 @@ public:
 	/**
 	* @method send
 	* @access public
-	* Sends given string using Socket if successful else throws runtime_error
-	* exception.
+	* @desc Sends given string using Socket if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	*
@@ -495,8 +494,8 @@ public:
 	/**
 	* @method send
 	* @access public
-	* Sends given string using Socket if successful else throws runtime_error
-	* exception.
+	* @desc Sends given string using Socket if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
@@ -546,8 +545,8 @@ public:
 	/**
 	* @method send
 	* @access public
-	* Sends given string using Socket if successful else throws runtime_error
-	* exception.
+	* @desc Sends given string using Socket if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
@@ -597,8 +596,8 @@ public:
 	/**
 	* @method send
 	* @access public
-	* Sends given string using Socket if successful else throws runtime_error
-	* exception.
+	* @desc Sends given string using Socket if successful else throws
+	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
 	* Throws invalid_argument exception if destination address given is invalid.
@@ -648,7 +647,7 @@ public:
 	/**
 	* @method recv
 	* @access public
-	* Reads given number of bytes using Socket if successful else throws
+	* @desc Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -664,7 +663,7 @@ public:
 	/**
 	* @method recv
 	* @access public
-	* Reads given number of bytes using Socket if successful else throws
+	* @desc Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -714,7 +713,7 @@ public:
 	/**
 	* @method recv
 	* @access public
-	* Reads given number of bytes using Socket if successful else throws
+	* @desc Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -764,7 +763,7 @@ public:
 	/**
 	* @method recv
 	* @access public
-	* Reads given number of bytes using Socket if successful else throws
+	* @desc Reads given number of bytes using Socket if successful else throws
 	* runtime_error exception.
 	* Throws invalid_argument exception in case of non-blocking net::Socket if
 	* _errorNB is missing.
@@ -814,7 +813,7 @@ public:
 	/**
 	* @method setOpt
 	* @access public
-	* Set a socket option from net::Opt for Socket using object of type
+	* @desc Set a socket option from net::Opt for Socket using object of type
 	* net::SockOpt.
 	*
 	* @param {net::Opt} _opType Option to set for Socket.
@@ -827,7 +826,7 @@ public:
 	/**
 	* @method getOpt
 	* @access public
-	* Get value of some socket option for Socket.
+	* @desc Get value of some socket option for Socket.
 	*
 	* @param {net::Opt} _opType Option of Socket whose value to get.
 	*/
@@ -837,7 +836,7 @@ public:
 	/**
 	* @method stop
 	* @access public
-	* Shutdown Socket using net::shut.
+	* @desc Shutdown Socket using net::shut.
 	*
 	* @param {net::shut} _s Option specifying which side of connection to
 	* shutdown for Socket.
@@ -851,7 +850,7 @@ public:
 	/**
 	* @method unlink
 	* @access public
-	* Unlinks the unix socket path.
+	* @desc Unlinks the unix socket path.
 	*/
 	bool unlink() const noexcept
 	{
@@ -864,7 +863,7 @@ public:
 	/**
 	* @method close
 	* @access public
-	* Closes the Socket for terminating connection.
+	* @desc Closes the Socket for terminating connection.
 	*/
 	bool close() const noexcept
 	{

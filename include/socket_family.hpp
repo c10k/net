@@ -80,8 +80,8 @@ namespace methods {
 
 	/**
 	* @function getErrorMsg
-	* Returns the standard human readable error message corresponding to given
-	* errorNumber.
+	* @desc Returns the standard human readable error message corresponding to
+	* given errorNumber.
 	*
 	* @param {int} errorNumber Error number whose string to return.
 	* @returns {string} Standard error string corresponding to given
@@ -98,7 +98,8 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given AddrIPv4 structure object with given ip address and port.
+	* @desc Fills the given AddrIPv4 structure object with given ip address and
+	* port.
 	*
 	* @param {AddrIPv4} _addrStruct Ipv4 structure object that needs to be
 	* filled with given ip address and port.
@@ -126,7 +127,8 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given AddrIPv6 structure object with given ip address and port.
+	* @desc Fills the given AddrIPv6 structure object with given ip address and
+	* port.
 	*
 	* @param {AddrIPv6} _addrStruct - Ipv6 structure object that needs to be
 	* filled with given ip address and port.
@@ -155,7 +157,7 @@ namespace methods {
 
 	/**
 	* @function construct
-	* Fills the given AddrUnix structure object with given address.
+	* @desc Fills the given AddrUnix structure object with given address.
 	*
 	* @param {AddrUnix} _addrStruct structure object that needs to be filled
 	* with given path.
