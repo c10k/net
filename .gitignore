@@ -30,4 +30,5 @@
 
 # Directories
 build
-
+.vscode
+.wercker
